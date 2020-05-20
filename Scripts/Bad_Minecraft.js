@@ -947,7 +947,7 @@ function CheckVisibility(x, y, z) {
     let xLow = Math.max(x - 1, 0);
 
 
-    var blockID = blockData[x][y][z];
+    var blockID = GetBlockData(x, y, z);
     var blockColor = colorID[blockID];
 
     // Make sure this is a block and not air
@@ -964,36 +964,35 @@ function CheckVisibility(x, y, z) {
     let blockXN = blockData[xLow][y][z];
     
     
-    if(blockID === 4 || blockID === 9 || blockID === 13){
-        // Check transparent blocks for visibility
-        // NOTE: Insert all transparent block IDs into the || sections
+    if(liquidID.includes(blockID)){
+        // Only render liquid faces if they border air or a different liquid
         
-        if (blockYP != blockID && (blockYP === 0 || blockYP === 4 || blockYP === 9 || blockYP === 13)) {
+        if (blockYP != blockID && liquidID.includes(blockYP) || blockYP === 0) {
             let thisFace = newFace("face", 'y', 1, blockColor);
             thisFace.Position = new BABYLON.Vector3(x, y, z);
             thisFace.Direction = 3;
         }
-        if (blockYN != blockID && (blockYN === 0 || blockYN === 4 || blockYN === 9 || blockYN === 13)) {
+        if (blockYN != blockID && liquidID.includes(blockYN) || blockYN === 0) {
             let thisFace = newFace("face", 'y', -1, blockColor);
             thisFace.Position = new BABYLON.Vector3(x, y, z);
             thisFace.Direction = 4;
         }
-        if (blockZP != blockID && (blockZP === 0 || blockZP === 4 || blockZP === 9 || blockZP === 13)) {
+        if (blockZP != blockID && liquidID.includes(blockZP) || blockZP === 0) {
             let thisFace = newFace("face", 'z', 1, blockColor);
             thisFace.Position = new BABYLON.Vector3(x, y, z);
             thisFace.Direction = 5;
         }
-        if (blockZN != blockID && (blockZN === 0 || blockZN === 4 || blockZN === 9 || blockZN === 13)) {
+        if (blockZN != blockID && liquidID.includes(blockZN) || blockZN === 0) {
             let thisFace = newFace("face", 'z', -1, blockColor);
             thisFace.Position = new BABYLON.Vector3(x, y, z);
             thisFace.Direction = 6;
         }
-        if (blockXP != blockID && (blockXP === 0 || blockXP === 4 || blockXP === 9 || blockXP === 13)) {
+        if (blockXP != blockID && liquidID.includes(blockXP) || blockXP === 0) {
             let thisFace = newFace("face", 'x', 1, blockColor);
             thisFace.Position = new BABYLON.Vector3(x, y, z);
             thisFace.Direction = 1;
         }
-        if (blockXN != blockID && (blockXN === 0 || blockXN === 4 || blockXN === 9 || blockXN === 13)) {
+        if (blockXN != blockID && liquidID.includes(blockXN) || blockXN === 0) {
             let thisFace = newFace("face", 'x', -1, blockColor);
             thisFace.Position = new BABYLON.Vector3(x, y, z);
             thisFace.Direction = 2;
@@ -1001,34 +1000,34 @@ function CheckVisibility(x, y, z) {
     }
     
     else{
-        // Check solid blocks for visibility
+        // Render solid faces if they border air or liquid
         
-        if (blockYP === 0 || blockYP === 4 || blockYP === 9 || blockYP === 13) {
+        if (blockYP === 0 || liquidID.includes(blockYP)) {
             let thisFace = newFace("face", 'y', 1, blockColor);
             thisFace.Position = new BABYLON.Vector3(x, y, z);
             thisFace.Direction = 3;
         }
-        if (blockYN === 0 || blockYN === 4 || blockYN === 9 || blockYN === 13) {
+        if (blockYN === 0 || liquidID.includes(blockYN)) {
             let thisFace = newFace("face", 'y', -1, blockColor);
             thisFace.Position = new BABYLON.Vector3(x, y, z);
             thisFace.Direction = 4;
         }
-        if (blockZP === 0 || blockZP === 4 || blockZP === 9 || blockZP === 13) {
+        if (blockZP === 0 || liquidID.includes(blockZP)) {
             let thisFace = newFace("face", 'z', 1, blockColor);
             thisFace.Position = new BABYLON.Vector3(x, y, z);
             thisFace.Direction = 5;
         }
-        if (blockZN === 0 || blockZN === 4 || blockZN === 9 || blockZN === 13) {
+        if (blockZN === 0 || liquidID.includes(blockZN)) {
             let thisFace = newFace("face", 'z', -1, blockColor);
             thisFace.Position = new BABYLON.Vector3(x, y, z);
             thisFace.Direction = 6;
         }
-        if (blockXP === 0 || blockXP === 4 || blockXP === 9 || blockXP === 13) {
+        if (blockXP === 0 || liquidID.includes(blockXP)) {
             let thisFace = newFace("face", 'x', 1, blockColor);
             thisFace.Position = new BABYLON.Vector3(x, y, z);
             thisFace.Direction = 1;
         }
-        if (blockXN === 0 || blockXN === 4 || blockXN === 9 || blockXN === 13) {
+        if (blockXN === 0 || liquidID.includes(blockXN)) {
             let thisFace = newFace("face", 'x', -1, blockColor);
             thisFace.Position = new BABYLON.Vector3(x, y, z);
             thisFace.Direction = 2;
@@ -1246,8 +1245,8 @@ function HandleCollision(){
     }
 }
 
-function ChangeBlock(deltaTime){
-	blockInHand += deltaTime;
+function ChangeBlock(sign){
+	blockInHand = Math.round(blockInHand + sign);
 	if(blockInHand > colorID.length - 1){
 		blockInHand = 1;
 	}
@@ -1314,9 +1313,6 @@ function Create4DArray(x, y, z, slots, fill = 0) {
     return arr;
 }
 
-function clamp(val, min, max) {
-
-}
 
 function RandomChance(percent){
     if(Math.random() < percent){
