@@ -10,6 +10,7 @@ var camInitRot = new BABYLON.Vector3(0, 0, 0);
 
 var sunAxis = new BABYLON.Vector3(1, 0, 1);
 var sunDefaultDirection = new BABYLON.Vector3(-0.5, 0, 0.8);
+var currSunDirection = sunDefaultDirection;
 sunAxis.normalize();
 sunDefaultDirection.normalize();
 
@@ -23,7 +24,7 @@ var sunLight = new SoftEngine.Light("Sun", LightType.Directional, sunny, sunDefa
 sunLight.Direction = sunDefaultDirection;
 lights.push(sunLight);
 
-var torchLight = new SoftEngine.Light("torch", LightType.Point, sunriseGold, 1.2);
+var torchLight = new SoftEngine.Light("torch", LightType.Point, sunriseGold, 2.5);
 lights.push(torchLight);
 
 var renderDistance = 5;
@@ -34,7 +35,11 @@ var prevChunk;
 //var chunksLoaded = Create2DArray(worldWidth, worldWidth);
 
 var blockData = Create3DArray(worldWidth, worldHeight, worldWidth);
-var blockIndexes = Create4DArray(worldWidth, worldHeight, worldWidth, 7);
+
+var lightData = {};
+var maxLightLevel = 7;
+var lightStepLength = 1.0;
+var maxLightSteps = 40;
 
 var drawFog = true;
 var fogIntensity = 1.1;
@@ -119,10 +124,8 @@ var playerVel = new BABYLON.Vector3(0, 0, 0);
 
 
 function setup() {
-    setupCamera(cam, camInitPos, camInitRot);
 
-    //var test = newCube("test", 1, indigo);
-    //test.Position = new BABYLON.Vector3(1, 15, 63)
+    setupCamera(cam, camInitPos, camInitRot);
 
     currChunk = new BABYLON.Vector3(Math.round(cam.Position.x / chunkWidth), Math.round(cam.Position.y / chunkHeight), Math.round(cam.Position.z / chunkWidth));
     prevChunk = currChunk;
@@ -139,9 +142,9 @@ function loop() {
 
     sunAngle += sunSpeed * deltaTime;
     let sunRotationMatrix = BABYLON.Matrix.RotationAxis(sunAxis, sunAngle);
-    let newSunDirection = BABYLON.Vector3.TransformNormal(sunDefaultDirection, sunRotationMatrix);
-    sunLight.Direction = newSunDirection;
-    console.log(sunAngle);
+    currSunDirection = BABYLON.Vector3.TransformNormal(sunDefaultDirection, sunRotationMatrix);
+    sunLight.Direction = currSunDirection;
+    //console.log(RadToDeg(sunAngle));
 
     let newSunBrightness = 0;
     if (sunAngle >= 0 && sunAngle < Math.PI / 8){
@@ -176,8 +179,6 @@ function loop() {
     if (!(currChunk.equals(prevChunk))) {
         ClearChunks();
         LoadChunks(currChunk, renderDistance);
-
-        //UpdateBlockIndexes();
     }
     
     currBlock = new BABYLON.Vector3(Math.round(cam.Position.x), Math.round(cam.Position.y), Math.round(cam.Position.z));
@@ -298,7 +299,6 @@ function loop() {
 
                         moveCameraToPosition(cam, newPos);
 
-                        //console.log('collided with wall');
                     }
                 }
             }
@@ -347,9 +347,7 @@ function loop() {
         }
     }
 
-    //console.log(playerVel.y);
     moveCameraVector(cam, playerVel.scale(deltaTime));
-
 
     document.getElementById("testStat").innerHTML = currBlock.x + ", " + currBlock.y + ", " + currBlock.z;
 }
@@ -926,12 +924,61 @@ function GenerateWorld() {
 
     ClearChunks();
     LoadChunks(currChunk, renderDistance);
-    UpdateBlockIndexes();
 
 }
 
 
-function CheckVisibility(x, y, z) {
+function UpdateSunlitFaces(x, y, z){
+
+    if (x >= worldWidth || x < 0 || y >= worldHeight || y < 0 || z >= worldWidth || z < 0) {
+        return;
+    }
+
+    var blockID = GetBlockData(x, y, z);
+
+    if (blockID === 0) {
+        return;
+    }
+
+    // March a ray towards the sun, checking if this block is occluded by other blocks
+    let rayDir = currSunDirection.scale(-lightStepLength);
+    let rayPos = new BABYLON.Vector3(x, y, z);
+    let isLit = true;
+
+
+    for (let i = 0; i < maxLightSteps; i++){
+        rayPos = rayPos.add(rayDir);
+        let blockPos = BABYLON.Vector3.Copy(rayPos).round();
+
+        let blockID = GetBlockData(blockPos.x, blockPos.y, blockPos.z);
+        if (blockID !== 0){
+            isLit = false;
+            break;
+        }
+    }
+
+    let lightValues = [0, 0, 0, 0, 0, 0];
+
+    if (isLit){
+        // Calculate the angle-compensated light for all six faces   
+
+        for (let f = 0; f < 6; f++){
+            let faceNormal = FaceNumberToNormal(f);
+
+            let ndotl = BABYLON.Vector3.Dot(faceNormal, currSunDirection);
+            ndotl = Math.max(ndotl, 0);
+
+            let lightLevel = Math.round(ndotl * maxLightLevel);
+            lightValues[f] = lightLevel;
+        }
+
+        SetBlockLightData(x, y, z, lightValues);
+    }
+
+}
+
+
+function CreateFaceMeshes(x, y, z) {
 
     if (x >= worldWidth || x < 0 || y >= worldHeight || y < 0 || z >= worldWidth || z < 0) {
         return;
@@ -950,7 +997,6 @@ function CheckVisibility(x, y, z) {
     var blockID = GetBlockData(x, y, z);
     var blockColor = colorID[blockID];
 
-    // Make sure this is a block and not air
     if (blockID === 0) {
         return;
     }
@@ -1036,6 +1082,7 @@ function CheckVisibility(x, y, z) {
 }
 
 
+
 function RemoveBlock(x, y, z){
     SetBlockData(x, y, z, 0);
 
@@ -1045,15 +1092,15 @@ function RemoveBlock(x, y, z){
     /*ClearBlocks(currBlock, 1);
     LoadBlocks(currBlock, 1);
 
-    CheckVisibility(x, y, z);
-    CheckVisibility(x+1, y, z);
-    CheckVisibility(x-1, y, z);
-    CheckVisibility(x, y+1, z);
-    CheckVisibility(x, y-1, z);
-    CheckVisibility(x, y, z+1);
-    CheckVisibility(x, y, z-1);
+    CreateFaceMeshes(x, y, z);
+    CreateFaceMeshes(x+1, y, z);
+    CreateFaceMeshes(x-1, y, z);
+    CreateFaceMeshes(x, y+1, z);
+    CreateFaceMeshes(x, y-1, z);
+    CreateFaceMeshes(x, y, z+1);
+    CreateFaceMeshes(x, y, z-1);
     
-    UpdateBlockIndexes();*/
+    */
 }
 
 
@@ -1064,20 +1111,19 @@ function PlaceBlock(x, y, z, ID){
     LoadChunks(currChunk, renderDistance);
     // Delete faces surrounding
     
-    /*CheckVisibility(x, y, z);
-    CheckVisibility(x+1, y, z);
-    CheckVisibility(x-1, y, z);
-    CheckVisibility(x, y+1, z);
-    CheckVisibility(x, y-1, z);
-    CheckVisibility(x, y, z+1);
-    CheckVisibility(x, y, z-1);*/
-    
-    //UpdateBlockIndexes();
+    /*CreateFaceMeshes(x, y, z);
+    CreateFaceMeshes(x+1, y, z);
+    CreateFaceMeshes(x-1, y, z);
+    CreateFaceMeshes(x, y+1, z);
+    CreateFaceMeshes(x, y-1, z);
+    CreateFaceMeshes(x, y, z+1);
+    CreateFaceMeshes(x, y, z-1);*/
+
 }
 
 
 
-function UpdateBlockIndexes() {
+/*function UpdateBlockIndexes() {
     for (let i = 1; i < meshes.length; i++) {
         let thisMesh = meshes[i];
         let meshCoords = new BABYLON.Vector3(Math.trunc(thisMesh.Position.x), Math.trunc(thisMesh.Position.y), Math.trunc(thisMesh.Position.z));
@@ -1085,7 +1131,7 @@ function UpdateBlockIndexes() {
 
         blockIndexes[meshCoords.x][meshCoords.y][meshCoords.z][directionIndex] = i;
     }
-}
+}*/
 
 
 function LoadBlocks(blockCoords, dist) {
@@ -1103,13 +1149,11 @@ function LoadBlocks(blockCoords, dist) {
                 if (z > worldWidth) { z = blockCoords.z + dist; }
 
                 if (x != blockCoords.x && y != blockCoords.y && z != blockCoords.z) {
-                    CheckVisibility(x, y, z);
+                    CreateFaceMeshes(x, y, z);
                 }
             }
         }
     }
-
-    //UpdateBlockIndexes();
 }
 
 
@@ -1118,37 +1162,30 @@ function ClearBlocks(blockCoords, dist) {
         let thisIndex = blockIndexes[blockCoords.x][blockCoords.y][blockCoords.z][i];
         if (thisIndex != 0) {
             meshes[thisIndex] = newEmptyMesh();
-            //UpdateBlockIndexes();
         }
         thisIndex = blockIndexes[blockCoords.x + 1][blockCoords.y][blockCoords.z][i];
         if (thisIndex != 0) {
             meshes[thisIndex] = newEmptyMesh();
-            //UpdateBlockIndexes();
         }
         thisIndex = blockIndexes[blockCoords.x - 1][blockCoords.y][blockCoords.z][i];
         if (thisIndex != 0) {
             meshes[thisIndex] = newEmptyMesh();
-            //UpdateBlockIndexes();
         }
         thisIndex = blockIndexes[blockCoords.x][blockCoords.y + 1][blockCoords.z][i];
         if (thisIndex != 0) {
             meshes[thisIndex] = newEmptyMesh();
-            //UpdateBlockIndexes();
         }
         thisIndex = blockIndexes[blockCoords.x][blockCoords.y - 1][blockCoords.z][i];
         if (thisIndex != 0) {
             meshes[thisIndex] = newEmptyMesh();
-            //UpdateBlockIndexes();
         }
         thisIndex = blockIndexes[blockCoords.x][blockCoords.y][blockCoords.z + 1][i];
         if (thisIndex != 0) {
             meshes[thisIndex] = newEmptyMesh();
-            //UpdateBlockIndexes();
         }
         thisIndex = blockIndexes[blockCoords.x][blockCoords.y][blockCoords.z - 1][i];
         if (thisIndex != 0) {
             meshes[thisIndex] = newEmptyMesh();
-            //UpdateBlockIndexes();
         }
     }
 }
@@ -1175,12 +1212,11 @@ function LoadChunks(chunkCoords, distance) {
                 if(z < 0) { z = 0; }
                 if(z > worldWidth) { z = zMid + renderWidth; }
         
-                CheckVisibility(x, y, z);
+                CreateFaceMeshes(x, y, z);
+                UpdateSunlitFaces(x, y, z);
             }
         }
     }
-
-    //UpdateBlockIndexes();
 }
 
 function ClearChunks() {
@@ -1210,6 +1246,7 @@ function SetBlockData(x, y, z, value){
     }
 }
 
+
 function GetMapData(map, x, z) {
     if (x < 0 || z < 0 || x > worldWidth - 1 || z > worldWidth - 1) {
         return 0;
@@ -1228,6 +1265,36 @@ function SetMapData(map, x, z, value) {
     }
 }
 
+
+function GetBlockLightData(x, y, z, face){
+    let key = x + "," + y + "," + z;
+    let values = [];
+    try{
+        values = lightData[key];
+    }
+    catch{
+        //allFaces = [0, 0, 0, 0, 0, 0];
+        values = [];
+    }
+
+    return values;
+}
+
+function SetBlockLightData(x, y, z, values){
+    let key = x + "," + y + "," + z;
+
+    lightData[key] = values;
+}
+
+function SetFaceLightData(x, y, z, faceNum, value){
+    let key = x + "," + y + "," + z;
+
+    lightData[key][faceNum] = values;
+}
+
+function ClearLightData(){
+    lightData = {};
+}
 
 
 function HandleCollision(){   
@@ -1338,5 +1405,47 @@ function RandomBool() {
     }
     else {
         return false;
+    }
+}
+
+function DegToRad(deg){
+    let rad = deg * Math.PI / 180;
+    return rad;
+}
+
+function RadToDeg(rad){
+    let deg = rad * 180 / Math.PI;
+    return deg;
+}
+
+function FaceNumberToNormal(faceNumber){
+
+    switch (faceNumber){
+        case 0:
+            // x+
+            return new BABYLON.Vector3(1, 0, 0);
+
+        case 1:
+            // x-
+            return new BABYLON.Vector3(-1, 0, 0);
+
+        case 2:
+            // y+
+            return new BABYLON.Vector3(0, 1, 0);
+
+        case 3:
+            // y-
+            return new BABYLON.Vector3(0, -1, 0);
+
+        case 4:
+            // z+
+            return new BABYLON.Vector3(0, 0, 1);
+
+        case 5:
+            // z-
+            return new BABYLON.Vector3(0, 0, -1);
+
+        default:
+            return new BABYLON.Vector3(0, 0, 0);
     }
 }

@@ -417,7 +417,7 @@
                                 for (var indexLights = 0; indexLights < lights.length; indexLights++) {
                                     let thisLight = lights[indexLights];
                                     let distanceMultiplier = 1;
-                                    let maxMultiplier = 2;
+                                    let maxMultiplier = 1;
                                     
                                     switch (currLightingMode){
 
