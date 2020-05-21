@@ -926,7 +926,7 @@ function GenerateWorld() {
 }
 
 
-function UpdateLightData(x, y, z){
+function CalculateBlockLighting(x, y, z){
 
     if (x >= worldWidth || x < 0 || y >= worldHeight || y < 0 || z >= worldWidth || z < 0) {
         return;
@@ -977,6 +977,11 @@ function UpdateLightData(x, y, z){
     }
 
     SetBlockLightData(x, y, z, lightValues);
+}
+
+
+function UpdateChunkLighting(){
+    
 }
 
 
@@ -1218,7 +1223,7 @@ function LoadChunks(chunkCoords, distance) {
         
                 CreateFaceMeshes(x, y, z);
                 
-                UpdateLightData(x, y, z);
+                CalculateBlockLighting(x, y, z);
             }
         }
     }
