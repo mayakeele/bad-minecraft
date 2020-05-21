@@ -80,7 +80,7 @@ const LightingMode = {
 }
 
 
-var ambientLight = 0.15;
+var ambientLight = 0.1;
 
 var currLightingMode = LightingMode.Voxel;
 

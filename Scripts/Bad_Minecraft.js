@@ -177,15 +177,13 @@ function loop() {
     }
 
     sunLight.Intensity = newSunBrightness;
-
-    ClearLightData();
-    UpdateLightData();
     
     
     currBlock = new BABYLON.Vector3(Math.round(cam.Position.x), Math.round(cam.Position.y), Math.round(cam.Position.z));
     collisionData = GetBlockData(currBlock.x, currBlock.y, currBlock.z);
     
     HandleCollision();
+
 
     // Remove targeted solid block
     if (leftMouseDown) {
@@ -1220,7 +1218,7 @@ function LoadChunks(chunkCoords, distance) {
         
                 CreateFaceMeshes(x, y, z);
                 
-                //UpdateLightData(x, y, z);
+                UpdateLightData(x, y, z);
             }
         }
     }
@@ -1282,7 +1280,6 @@ function GetBlockLightData(x, y, z){
     }
     else{
         values = [0, 0, 0, 0, 0, 0];
-        console.log("block light is not mapped");
     }
 
     return values;
