@@ -14,20 +14,19 @@ var currSunDirection = sunDefaultDirection;
 sunAxis.normalize();
 sunDefaultDirection.normalize();
 
-var sunDefaultBrightness = 0.9;
+var sunDefaultBrightness = 0.8;
 var dayLength = 180;
 var sunSpeed = Math.PI / dayLength;
 var sunAngle = Math.PI / 8;
 
 var sunLight = new SoftEngine.Light("Sun", LightType.Directional, sunny, sunDefaultBrightness);
-//sceneLight.Direction = new BABYLON.Vector3(0.2, -1, -0.4);
 sunLight.Direction = sunDefaultDirection;
 lights.push(sunLight);
 
-var torchLight = new SoftEngine.Light("torch", LightType.Point, sunriseGold, 2.5);
-lights.push(torchLight);
+//var torchLight = new SoftEngine.Light("torch", LightType.Point, sunriseGold, 2.5);
+//lights.push(torchLight);
 
-var renderDistance = 5;
+var renderDistance = 4;
 var chunkWidth = 8;
 var chunkHeight = 8;
 var currChunk;
@@ -38,7 +37,7 @@ var blockData = Create3DArray(worldWidth, worldHeight, worldWidth);
 
 var lightData = {};
 var maxLightLevel = 7;
-var lightStepLength = 1.0;
+var lightStepLength = 1;
 var maxLightSteps = 40;
 
 var drawFog = true;
@@ -179,8 +178,9 @@ function loop() {
 
     sunLight.Intensity = newSunBrightness;
 
-    torchLight.Position = cam.Position;
-
+    ClearLightData();
+    UpdateLightData();
+    
     
     currBlock = new BABYLON.Vector3(Math.round(cam.Position.x), Math.round(cam.Position.y), Math.round(cam.Position.z));
     collisionData = GetBlockData(currBlock.x, currBlock.y, currBlock.z);
@@ -943,34 +943,39 @@ function UpdateLightData(x, y, z){
     // March a ray towards the sun, checking if this block is occluded by other blocks
     let rayDir = currSunDirection.scale(-lightStepLength);
     let rayPos = new BABYLON.Vector3(x, y + 0.5, z);
-    let isLit = true;
-
+    let lightMultiplier = 1;
+    
 
     for (let i = 0; i < maxLightSteps; i++){
         rayPos = rayPos.add(rayDir);
         let blockPos = BABYLON.Vector3.Copy(rayPos).round();
 
         let blockID = GetBlockData(blockPos.x, blockPos.y, blockPos.z);
-        if (blockID !== 0){
-            isLit = false;
+
+        if (blockID !== 0){           
+            if (liquidID.includes(blockID)){
+                lightMultiplier = 0.5;
+            }
+            else{
+                lightMultiplier = 0;
+            }
+
             break;
         }
     }
 
+    // Calculate the angle-compensated light level for all six faces   
+
     let lightValues = [0, 0, 0, 0, 0, 0];
 
-    if (isLit){
-        // Calculate the angle-compensated light for all six faces   
+    for (let f = 0; f < 6; f++){
+        let faceNormal = FaceNumberToNormal(f);
 
-        for (let f = 0; f < 6; f++){
-            let faceNormal = FaceNumberToNormal(f);
+        let ndotl = BABYLON.Vector3.Dot(faceNormal, rayDir);
+        ndotl = Math.max(ndotl, 0);
+        
+        lightValues[f] = Math.round(lightMultiplier * ndotl * maxLightLevel);
 
-            let ndotl = BABYLON.Vector3.Dot(faceNormal, rayDir);
-            ndotl = Math.max(ndotl, 0);
-
-            let lightLevel = Math.round(ndotl * maxLightLevel);
-            lightValues[f] = lightLevel;
-        }
     }
 
     SetBlockLightData(x, y, z, lightValues);
@@ -1198,7 +1203,7 @@ function LoadChunks(chunkCoords, distance) {
     let renderWidth = (chunkWidth / 2) + (chunkWidth * distance);
     let renderHeight = (chunkHeight / 2) + (chunkHeight * distance);
 
-    ClearLightData();
+    //ClearLightData();
 
     // Load in chunks surrounding the player
     for (let x = xMid - renderWidth; x < xMid + renderWidth; x++) {
@@ -1215,7 +1220,7 @@ function LoadChunks(chunkCoords, distance) {
         
                 CreateFaceMeshes(x, y, z);
                 
-                UpdateLightData(x, y, z);
+                //UpdateLightData(x, y, z);
             }
         }
     }

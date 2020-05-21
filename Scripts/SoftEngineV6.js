@@ -478,9 +478,9 @@
                                             let lightData = GetBlockLightData(blockPos.x, blockPos.y, blockPos.z);
                                             let lightLevel = lightData[cMesh.Direction - 1] / maxLightLevel;
 
-                                            outputColor.r += lightLevel * faceColor.r * sunLight.Color.r / 255;
-                                            outputColor.g += lightLevel * faceColor.g * sunLight.Color.g / 255;
-                                            outputColor.b += lightLevel * faceColor.b * sunLight.Color.b / 255;
+                                            outputColor.r += lightLevel * faceColor.r * sunLight.Intensity * sunLight.Color.r / 255;
+                                            outputColor.g += lightLevel * faceColor.g * sunLight.Intensity * sunLight.Color.g / 255;
+                                            outputColor.b += lightLevel * faceColor.b * sunLight.Intensity * sunLight.Color.b / 255;
                                         }
 
                                         break;
