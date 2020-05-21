@@ -95,7 +95,7 @@ var BABYLON;
             this.z = initialZ;
         }
         Vector3.prototype.toString = function () {
-            return "{X: " + this.x + " Y:" + this.y + " Z:" + this.z + "}";
+            return (this.x + "," + this.y + "," + this.z);
         };
         Vector3.prototype.add = function (otherVector) {
             return new Vector3(this.x + otherVector.x, this.y + otherVector.y, this.z + otherVector.z);
@@ -117,6 +117,9 @@ var BABYLON;
         };
         Vector3.prototype.divide = function (otherVector) {
             return new Vector3(this.x / otherVector.x, this.y / otherVector.y, this.z / otherVector.z);
+        };
+        Vector3.prototype.round = function () {
+            return new Vector3(Math.round(this.x), Math.round(this.y), Math.round(this.z));
         };
         Vector3.prototype.length = function () {
             return Math.sqrt(this.x * this.x + this.y * this.y + this.z * this.z);
