@@ -75,13 +75,14 @@ const LightingMode = {
     Flat_InverseSquared : 0,
     Flat_Linear : 1,
     Gouraud_Inverse : 2,
-    Gouraud_Linear : 3
+    Gouraud_Linear : 3,
+    Voxel : 4
 }
 
 
-var ambientLight = 0.05;
+var ambientLight = 0.15;
 
-var currLightingMode = LightingMode.Flat_InverseSquared;
+var currLightingMode = LightingMode.Voxel;
 
 
 var deltaTime; // Time, in SECONDS, since last frame.

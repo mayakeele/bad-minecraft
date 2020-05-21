@@ -140,6 +140,20 @@ function setup() {
 
 function loop() {
 
+    prevChunk = currChunk;
+    firstPersonMovement();
+    if (rDown === true || cam.Position.y < 0) {
+        setupCamera(cam, camInitPos, camInitRot);
+	    playerVel = new BABYLON.Vector3(0, 0, 0);
+    }
+    
+    currChunk = new BABYLON.Vector3(Math.round(cam.Position.x / chunkWidth), Math.round(cam.Position.y / chunkHeight), Math.round(cam.Position.z / chunkWidth));
+    if (!(currChunk.equals(prevChunk))) {
+        ClearChunks();
+        LoadChunks(currChunk, renderDistance);
+    }
+
+
     sunAngle += sunSpeed * deltaTime;
     let sunRotationMatrix = BABYLON.Matrix.RotationAxis(sunAxis, sunAngle);
     currSunDirection = BABYLON.Vector3.TransformNormal(sunDefaultDirection, sunRotationMatrix);
@@ -167,19 +181,6 @@ function loop() {
 
     torchLight.Position = cam.Position;
 
-
-    prevChunk = currChunk;
-    firstPersonMovement();
-    if (rDown === true || cam.Position.y < 0) {
-        setupCamera(cam, camInitPos, camInitRot);
-	    playerVel = new BABYLON.Vector3(0, 0, 0);
-    }
-    
-    currChunk = new BABYLON.Vector3(Math.round(cam.Position.x / chunkWidth), Math.round(cam.Position.y / chunkHeight), Math.round(cam.Position.z / chunkWidth));
-    if (!(currChunk.equals(prevChunk))) {
-        ClearChunks();
-        LoadChunks(currChunk, renderDistance);
-    }
     
     currBlock = new BABYLON.Vector3(Math.round(cam.Position.x), Math.round(cam.Position.y), Math.round(cam.Position.z));
     collisionData = GetBlockData(currBlock.x, currBlock.y, currBlock.z);
@@ -230,7 +231,6 @@ function loop() {
 
                     blockID = GetBlockData(targetX, targetY, targetZ);
                     if (currDist > 2.5 && (blockID === 0 || liquidID.includes(blockID))) {
-                        console.log('test');
                         PlaceBlock(targetX, targetY, targetZ, blockInHand);
 
                         if (blockInHand === 15){
@@ -928,7 +928,7 @@ function GenerateWorld() {
 }
 
 
-function UpdateSunlitFaces(x, y, z){
+function UpdateLightData(x, y, z){
 
     if (x >= worldWidth || x < 0 || y >= worldHeight || y < 0 || z >= worldWidth || z < 0) {
         return;
@@ -942,7 +942,7 @@ function UpdateSunlitFaces(x, y, z){
 
     // March a ray towards the sun, checking if this block is occluded by other blocks
     let rayDir = currSunDirection.scale(-lightStepLength);
-    let rayPos = new BABYLON.Vector3(x, y, z);
+    let rayPos = new BABYLON.Vector3(x, y + 0.5, z);
     let isLit = true;
 
 
@@ -965,16 +965,15 @@ function UpdateSunlitFaces(x, y, z){
         for (let f = 0; f < 6; f++){
             let faceNormal = FaceNumberToNormal(f);
 
-            let ndotl = BABYLON.Vector3.Dot(faceNormal, currSunDirection);
+            let ndotl = BABYLON.Vector3.Dot(faceNormal, rayDir);
             ndotl = Math.max(ndotl, 0);
 
             let lightLevel = Math.round(ndotl * maxLightLevel);
             lightValues[f] = lightLevel;
         }
-
-        SetBlockLightData(x, y, z, lightValues);
     }
 
+    SetBlockLightData(x, y, z, lightValues);
 }
 
 
@@ -1199,6 +1198,8 @@ function LoadChunks(chunkCoords, distance) {
     let renderWidth = (chunkWidth / 2) + (chunkWidth * distance);
     let renderHeight = (chunkHeight / 2) + (chunkHeight * distance);
 
+    ClearLightData();
+
     // Load in chunks surrounding the player
     for (let x = xMid - renderWidth; x < xMid + renderWidth; x++) {
         if(x < 0) { x = 0; }
@@ -1213,7 +1214,8 @@ function LoadChunks(chunkCoords, distance) {
                 if(z > worldWidth) { z = zMid + renderWidth; }
         
                 CreateFaceMeshes(x, y, z);
-                UpdateSunlitFaces(x, y, z);
+                
+                UpdateLightData(x, y, z);
             }
         }
     }
@@ -1266,15 +1268,16 @@ function SetMapData(map, x, z, value) {
 }
 
 
-function GetBlockLightData(x, y, z, face){
+function GetBlockLightData(x, y, z){
     let key = x + "," + y + "," + z;
     let values = [];
-    try{
+
+    if (lightData.hasOwnProperty(key)){
         values = lightData[key];
     }
-    catch{
-        //allFaces = [0, 0, 0, 0, 0, 0];
-        values = [];
+    else{
+        values = [0, 0, 0, 0, 0, 0];
+        console.log("block light is not mapped");
     }
 
     return values;
@@ -1282,14 +1285,13 @@ function GetBlockLightData(x, y, z, face){
 
 function SetBlockLightData(x, y, z, values){
     let key = x + "," + y + "," + z;
-
     lightData[key] = values;
 }
 
 function SetFaceLightData(x, y, z, faceNum, value){
     let key = x + "," + y + "," + z;
 
-    lightData[key][faceNum] = values;
+    lightData[key][faceNum] = value;
 }
 
 function ClearLightData(){

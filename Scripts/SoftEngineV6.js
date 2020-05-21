@@ -371,8 +371,7 @@
                     normalVector.normalize();
                     //var worldNormal = BABYLON.Vector3.TransformCoordinates(normalVector, worldMatrix);
 
-                    
-                    
+
                     var faceCenter = (vertexA.add(vertexB.add(vertexC))).scale(1 / 3);
                     var faceCamSpace = BABYLON.Vector3.TransformCoordinates(faceCenter, camSpaceMatrix);
 
@@ -414,14 +413,14 @@
                                 var ndotl = 0;
                                 var outputColor = new BABYLON.Color4(ambientLight * faceColor.r, ambientLight * faceColor.g, ambientLight * faceColor.b, faceColor.a);                                
 
-                                for (var indexLights = 0; indexLights < lights.length; indexLights++) {
-                                    let thisLight = lights[indexLights];
-                                    let distanceMultiplier = 1;
-                                    let maxMultiplier = 1;
-                                    
-                                    switch (currLightingMode){
+                                switch (currLightingMode){
 
-                                        case LightingMode.Flat_InverseSquared:
+                                    case LightingMode.Flat_InverseSquared:
+                                        for (var indexLights = 0; indexLights < lights.length; indexLights++) {
+                                            let thisLight = lights[indexLights];
+                                            let distanceMultiplier = 1;
+                                            let maxMultiplier = 1;
+
                                             if (thisLight.Type == LightType.Point) {
                                                 ndotl = this.computeNDotL(centerPoint, normalVector, thisLight.Position);
                                                 var dist = BABYLON.Vector3.DistanceSquared(thisLight.Position, centerPoint);
@@ -434,9 +433,23 @@
                                                 //var dist = BABYLON.Vector3.Distance(thisLight.Position, centerPoint)
                                                 distScale = thisLight.Intensity;
                                             }
-                                            break;
+
+                                            ndotl = this.clamp(ndotl, 0, 1);
+
+                                            outputColor.r += distScale * ndotl * faceColor.r * thisLight.Color.r / 255;
+                                            outputColor.g += distScale * ndotl * faceColor.g * thisLight.Color.g / 255;
+                                            outputColor.b += distScale * ndotl * faceColor.b * thisLight.Color.b / 255;
+                                        }
+
                                         
-                                        case LightingMode.Flat_Linear:
+                                        break;
+                                    
+                                    case LightingMode.Flat_Linear:
+                                        for (var indexLights = 0; indexLights < lights.length; indexLights++) {
+                                            let thisLight = lights[indexLights];
+                                            let distanceMultiplier = 1;
+                                            let maxMultiplier = 1;
+
                                             if (thisLight.Type == LightType.Point) {
                                                 ndotl = this.computeNDotL(centerPoint, normalVector, thisLight.Position);
                                                 var dist = BABYLON.Vector3.Distance(thisLight.Position, centerPoint);
@@ -449,17 +462,30 @@
                                                 //var dist = BABYLON.Vector3.Distance(thisLight.Position, centerPoint)
                                                 distScale = thisLight.Intensity;
                                             }
-                                            break;
 
-                                    }
+                                            ndotl = this.clamp(ndotl, 0, 1);
+
+                                            outputColor.r += distScale * ndotl * faceColor.r * thisLight.Color.r / 255;
+                                            outputColor.g += distScale * ndotl * faceColor.g * thisLight.Color.g / 255;
+                                            outputColor.b += distScale * ndotl * faceColor.b * thisLight.Color.b / 255;
+                                        }
+                                        
+                                        break;
                                     
-                                    ndotl = this.clamp(ndotl, 0, 1);
+                                    case LightingMode.Voxel:
+                                        if (cMesh.Direction !== 0){
+                                            let blockPos = cMesh.Position.round();
+                                            let lightData = GetBlockLightData(blockPos.x, blockPos.y, blockPos.z);
+                                            let lightLevel = lightData[cMesh.Direction - 1] / maxLightLevel;
 
-                                    outputColor.r += distScale * ndotl * faceColor.r * thisLight.Color.r / 255;
-                                    outputColor.g += distScale * ndotl * faceColor.g * thisLight.Color.g / 255;
-                                    outputColor.b += distScale * ndotl * faceColor.b * thisLight.Color.b / 255;
+                                            outputColor.r += lightLevel * faceColor.r * sunLight.Color.r / 255;
+                                            outputColor.g += lightLevel * faceColor.g * sunLight.Color.g / 255;
+                                            outputColor.b += lightLevel * faceColor.b * sunLight.Color.b / 255;
+                                        }
+
+                                        break;
+
                                 }
-
                                 
 
                                 if (drawFog === true) {
