@@ -27,18 +27,22 @@ lights.push(sunLight);
 //lights.push(torchLight);
 
 var renderDistance = 4;
+var chunksPerEdge = 2 * renderDistance + 1;
 var chunkWidth = 8;
 var chunkHeight = 8;
 var currChunk;
 var prevChunk;
+var chunkUpdateIndex = 0;
+var chunkUpdateCoords = BABYLON.Vector3.Zero();
 //var chunksLoaded = Create2DArray(worldWidth, worldWidth);
 
 var blockData = Create3DArray(worldWidth, worldHeight, worldWidth);
 
 var lightData = {};
 var maxLightLevel = 7;
-var lightStepLength = 1;
+var lightStepLength = 1.5;
 var maxLightSteps = 40;
+var lightUpdatesPerFrame = Math.pow(2 * renderDistance + 1, 1);
 
 var drawFog = true;
 var fogIntensity = 1.1;
@@ -141,23 +145,39 @@ function loop() {
 
     prevChunk = currChunk;
     firstPersonMovement();
+
+    // Reset player position if they press R or they fall below y = 0
     if (rDown === true || cam.Position.y < 0) {
         setupCamera(cam, camInitPos, camInitRot);
 	    playerVel = new BABYLON.Vector3(0, 0, 0);
     }
     
+    // Determine which chunk the player is in and reload chunks if they move to a new chunk
     currChunk = new BABYLON.Vector3(Math.round(cam.Position.x / chunkWidth), Math.round(cam.Position.y / chunkHeight), Math.round(cam.Position.z / chunkWidth));
     if (!(currChunk.equals(prevChunk))) {
         ClearChunks();
         LoadChunks(currChunk, renderDistance);
     }
 
+    // Update lighting for a set number of chunks each frame
+    for (let u = 0; u < lightUpdatesPerFrame; u++){
+        chunkUpdateCoords = Unflatten3DGrid(chunkUpdateIndex, chunksPerEdge);
+        chunkUpdateCoords = chunkUpdateCoords.subtract(new BABYLON.Vector3(renderDistance, renderDistance, renderDistance)).add(currChunk);
+        CalculateChunkLighting(chunkUpdateCoords);
 
+        chunkUpdateIndex += 1;
+
+        if (chunkUpdateIndex > chunksPerEdge * chunksPerEdge * chunksPerEdge - 1){
+            chunkUpdateIndex = 0;
+        }
+    }
+    
+
+    // Change the angle of the sun throughout the day, and adjust the light intensity based on time of day
     sunAngle += sunSpeed * deltaTime;
     let sunRotationMatrix = BABYLON.Matrix.RotationAxis(sunAxis, sunAngle);
     currSunDirection = BABYLON.Vector3.TransformNormal(sunDefaultDirection, sunRotationMatrix);
     sunLight.Direction = currSunDirection;
-    //console.log(RadToDeg(sunAngle));
 
     let newSunBrightness = 0;
     if (sunAngle >= 0 && sunAngle < Math.PI / 8){
@@ -180,12 +200,12 @@ function loop() {
     
     
     currBlock = new BABYLON.Vector3(Math.round(cam.Position.x), Math.round(cam.Position.y), Math.round(cam.Position.z));
+
+
     collisionData = GetBlockData(currBlock.x, currBlock.y, currBlock.z);
-    
-    HandleCollision();
+    UpdateColorMask();
 
-
-    // Remove targeted solid block
+    // Remove targeted solid block if LMB is clicked
     if (leftMouseDown) {
         let camDirection = cam.Target.subtract(cam.Position);
 		
@@ -205,6 +225,7 @@ function loop() {
 			}    
 		}
     }
+    // Place a block where the cursor is pointing, if RMB is clicked and a solid block is targeted
     else if (rightMouseDown) {
         // To figure out where to place a block, first march forward from the player.  If a block is hit, begin marching backwards until it gets back to air
         let camDirection = cam.Target.subtract(cam.Position);
@@ -347,7 +368,8 @@ function loop() {
 
     moveCameraVector(cam, playerVel.scale(deltaTime));
 
-    document.getElementById("testStat").innerHTML = currBlock.x + ", " + currBlock.y + ", " + currBlock.z;
+    //document.getElementById("testStat").innerHTML = currBlock.x + ", " + currBlock.y + ", " + currBlock.z;
+    document.getElementById("testStat").innerHTML = currChunk.x + ", " + currChunk.y + ", " + currChunk.z;
 }
 
 
@@ -933,7 +955,6 @@ function CalculateBlockLighting(x, y, z){
     }
 
     var blockID = GetBlockData(x, y, z);
-
     if (blockID === 0) {
         return;
     }
@@ -943,7 +964,6 @@ function CalculateBlockLighting(x, y, z){
     let rayPos = new BABYLON.Vector3(x, y + 0.5, z);
     let lightMultiplier = 1;
     
-
     for (let i = 0; i < maxLightSteps; i++){
         rayPos = rayPos.add(rayDir);
         let blockPos = BABYLON.Vector3.Copy(rayPos).round();
@@ -952,36 +972,70 @@ function CalculateBlockLighting(x, y, z){
 
         if (blockID !== 0){           
             if (liquidID.includes(blockID)){
-                lightMultiplier = 0.5;
+                lightMultiplier *= 0.8;
             }
             else{
                 lightMultiplier = 0;
+                break;
             }
-
-            break;
+            
         }
     }
 
     // Calculate the angle-compensated light level for all six faces   
-
     let lightValues = [0, 0, 0, 0, 0, 0];
-
     for (let f = 0; f < 6; f++){
         let faceNormal = FaceNumberToNormal(f);
-
         let ndotl = BABYLON.Vector3.Dot(faceNormal, rayDir);
         ndotl = Math.max(ndotl, 0);
         
         lightValues[f] = Math.round(lightMultiplier * ndotl * maxLightLevel);
-
     }
 
     SetBlockLightData(x, y, z, lightValues);
 }
 
 
-function UpdateChunkLighting(){
-    
+function CalculateChunkLighting(chunkCoords){
+    let xMid = chunkCoords.x * chunkWidth;
+    let yMid = chunkCoords.y * chunkHeight;
+    let zMid = chunkCoords.z * chunkWidth;
+
+    let renderWidth = (chunkWidth / 2);
+    let renderHeight = (chunkHeight / 2);
+
+    for (let x = xMid - renderWidth; x < xMid + renderWidth; x++) {
+        if(x < 0) { x = 0; }
+        if(x > worldWidth) { x = xMid + renderWidth; }
+        
+        for (let y = yMid - renderHeight; y < yMid + renderHeight; y++) {
+            if(y < 0) { y = 0; }
+            if(y > worldHeight) { y = yMid + renderHeight; }
+            
+            for (let z = zMid - renderWidth; z < zMid + renderWidth; z++) {
+                if(z < 0) { z = 0; }
+                if(z > worldWidth) { z = zMid + renderWidth; }
+                
+                CalculateBlockLighting(x, y, z);
+            }
+        }
+    }
+}
+
+function Unflatten3DGrid(index, width){
+    // Converts a single index into a 3D integer coordinate trio, given the dimensions of a square grid to pick from
+    // Coordinates are mapped in the order (x, z, y), but a standard xyz vector is returned
+    let maxIndex = width * width * width - 1;
+    if (index > maxIndex){
+        return; }
+
+    let x = index % width;
+    let z = Math.trunc(index / width) % width;
+    let y = Math.trunc(index / (width * width));
+
+    let coords = new BABYLON.Vector3(x, y, z);
+    //console.log(coords);
+    return coords;
 }
 
 
@@ -1223,7 +1277,7 @@ function LoadChunks(chunkCoords, distance) {
         
                 CreateFaceMeshes(x, y, z);
                 
-                CalculateBlockLighting(x, y, z);
+                //CalculateBlockLighting(x, y, z);
             }
         }
     }
@@ -1306,7 +1360,7 @@ function ClearLightData(){
 }
 
 
-function HandleCollision(){   
+function UpdateColorMask(){   
     if(collisionData === 4){
         maskColor = new BABYLON.Color4(-60, -60, 100, 255);
     }
