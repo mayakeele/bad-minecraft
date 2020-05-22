@@ -39,7 +39,7 @@ var chunkUpdateCoords = BABYLON.Vector3.Zero();
 var blockData = Create3DArray(worldWidth, worldHeight, worldWidth);
 
 var lightData = {};
-var maxLightLevel = 7;
+var maxLightLevel = 15;
 var lightStepLength = 1.5;
 var maxLightSteps = 40;
 var lightUpdatesPerFrame = Math.pow(2 * renderDistance + 1, 1);
@@ -65,6 +65,24 @@ var colorID = [null,
     waterTurquoise,
     cloudGrey,
     torchOrange
+];
+
+var blockTransparency = [null,
+    0,
+    0,
+    0,
+    0.7,
+    0,
+    0,
+    0.4,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0.6,
+    0.6,
+    0
 ];
 
 var liquidID = [4, 9, 13]
@@ -127,6 +145,8 @@ var playerVel = new BABYLON.Vector3(0, 0, 0);
 
 
 function setup() {
+    
+    worldSeed = Math.floor(Math.random() * 65535);
 
     setupCamera(cam, camInitPos, camInitRot);
 
@@ -450,7 +470,6 @@ function GenerateWorld() {
     
     // Heightmap generation
     var heightMap = Create2DArray(worldWidth, worldWidth);
-    worldSeed = Math.floor(Math.random() * 65535);
     noise.seed(worldSeed);
     for (let x = 1; x < worldWidth-1; x++) {
         for (let z = 1; z < worldWidth-1; z++) {
@@ -971,14 +990,10 @@ function CalculateBlockLighting(x, y, z){
         let blockID = GetBlockData(blockPos.x, blockPos.y, blockPos.z);
 
         if (blockID !== 0){           
-            if (liquidID.includes(blockID)){
-                lightMultiplier *= 0.8;
-            }
-            else{
-                lightMultiplier = 0;
+            lightMultiplier *= blockTransparency[blockID];
+            if (lightMultiplier === 0){
                 break;
             }
-            
         }
     }
 
@@ -1362,13 +1377,13 @@ function ClearLightData(){
 
 function UpdateColorMask(){   
     if(collisionData === 4){
-        maskColor = new BABYLON.Color4(-60, -60, 100, 255);
+        maskColor = new BABYLON.Color4(-40, -30, 70, 255);
     }
     else if (collisionData === 9) {
         maskColor = colorID[9];
     }
     else if (collisionData === 13) {
-        maskColor = new BABYLON.Color4(-70, 50, 40, 255);
+        maskColor = new BABYLON.Color4(-50, 30, 20, 255);
     }
     else{
         maskColor = new BABYLON.Color4(0, 0, 0, 255);
