@@ -38,7 +38,8 @@ var chunkUpdateCoords = BABYLON.Vector3.Zero();
 
 var blockData = Create3DArray(worldWidth, worldHeight, worldWidth);
 
-var lightData = {};
+var currLightData = {};
+var tempLightData = {};
 var maxLightLevel = 15;
 var lightStepLength = 1.5;
 var maxLightSteps = 40;
@@ -181,15 +182,22 @@ function loop() {
 
     // Update lighting for a set number of chunks each frame
     for (let u = 0; u < lightUpdatesPerFrame; u++){
-        chunkUpdateCoords = Unflatten3DGrid(chunkUpdateIndex, chunksPerEdge);
-        chunkUpdateCoords = chunkUpdateCoords.subtract(new BABYLON.Vector3(renderDistance, renderDistance, renderDistance)).add(currChunk);
-        CalculateChunkLighting(chunkUpdateCoords);
-
-        chunkUpdateIndex += 1;
-
         if (chunkUpdateIndex > chunksPerEdge * chunksPerEdge * chunksPerEdge - 1){
+            // Once lighting data is computed for all chunks, clear the previous light data and update to current values
+            currLightData = {};
+            for (let key in tempLightData){
+                currLightData[key] = tempLightData[key];
+            }
+            
+            tempLightData = {};
             chunkUpdateIndex = 0;
         }
+
+        chunkUpdateCoords = Unflatten3DGrid(chunkUpdateIndex, chunksPerEdge);
+        chunkUpdateCoords = chunkUpdateCoords.subtract(new BABYLON.Vector3(renderDistance, renderDistance, renderDistance)).add(currChunk);
+        tempLightData = CalculateChunkLighting(chunkUpdateCoords, tempLightData);
+
+        chunkUpdateIndex += 1;
     }
     
 
@@ -1007,11 +1015,11 @@ function CalculateBlockLighting(x, y, z){
         lightValues[f] = Math.round(lightMultiplier * ndotl * maxLightLevel);
     }
 
-    SetBlockLightData(x, y, z, lightValues);
+    return lightValues;
 }
 
 
-function CalculateChunkLighting(chunkCoords){
+function CalculateChunkLighting(chunkCoords, lightingObject){
     let xMid = chunkCoords.x * chunkWidth;
     let yMid = chunkCoords.y * chunkHeight;
     let zMid = chunkCoords.z * chunkWidth;
@@ -1031,10 +1039,14 @@ function CalculateChunkLighting(chunkCoords){
                 if(z < 0) { z = 0; }
                 if(z > worldWidth) { z = zMid + renderWidth; }
                 
-                CalculateBlockLighting(x, y, z);
+                let key = CreateLightKey(x, y, z);
+                let lightData = CalculateBlockLighting(x, y, z);
+                lightingObject[key] = lightData;
             }
         }
     }
+
+    return lightingObject;
 }
 
 function Unflatten3DGrid(index, width){
@@ -1349,8 +1361,8 @@ function GetBlockLightData(x, y, z){
     let key = x + "," + y + "," + z;
     let values = [];
 
-    if (lightData.hasOwnProperty(key)){
-        values = lightData[key];
+    if (currLightData.hasOwnProperty(key)){
+        values = currLightData[key];
     }
     else{
         values = [0, 0, 0, 0, 0, 0];
@@ -1361,17 +1373,12 @@ function GetBlockLightData(x, y, z){
 
 function SetBlockLightData(x, y, z, values){
     let key = x + "," + y + "," + z;
-    lightData[key] = values;
+    currLightData[key] = values;
 }
 
-function SetFaceLightData(x, y, z, faceNum, value){
+function CreateLightKey(x, y, z){
     let key = x + "," + y + "," + z;
-
-    lightData[key][faceNum] = value;
-}
-
-function ClearLightData(){
-    lightData = {};
+    return key;
 }
 
 
