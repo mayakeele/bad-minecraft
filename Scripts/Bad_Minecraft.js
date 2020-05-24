@@ -42,7 +42,7 @@ var currLightData = {};
 var maxLightLevel = 15;
 var lightStepLength = 1.5;
 var maxLightSteps = 40;
-var lightUpdatesPerFrame = Math.pow(2 * renderDistance + 1, 1);
+var lightUpdatesPerFrame = 2 * Math.pow(2 * renderDistance + 1, 1);
 
 var drawFog = true;
 var fogIntensity = 1.1;
@@ -71,7 +71,7 @@ var blockTransparency = [null,
     0,
     0,
     0,
-    0.7,
+    0.8,
     0,
     0,
     0.4,
