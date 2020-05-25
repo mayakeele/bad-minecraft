@@ -46,10 +46,10 @@ window.addEventListener("keydown", function (event) {
             rDown = true;
             break;
 		case ",":
-            ChangeBlock(-1);
+            CycleSelectedBlock(-1);
             break;
 		case ".":
-            ChangeBlock(1);
+            CycleSelectedBlock(1);
             break;
 
         default:
