@@ -411,7 +411,7 @@
 
                                 // First, add ambient light
                                 var ndotl = 0;
-                                var outputColor = new BABYLON.Color(ambientLight * faceColor.r, ambientLight * faceColor.g, ambientLight * faceColor.b);
+                                var outputColor = new BABYLON.Color3(ambientLight * faceColor.r, ambientLight * faceColor.g, ambientLight * faceColor.b);
 
                                 switch (currLightingMode){
 
@@ -502,7 +502,7 @@
                                         outputColor.b = this.interpolate(outputColor.b, skyBoxColor.b, densityGradient);
 
                                         if (showWires) {
-                                            var lineColor = new BABYLON.Color(0, 0, 0);
+                                            var lineColor = new BABYLON.Color3(0, 0, 0);
                                             lineColor.r = this.interpolate(lineColor.r, skyBoxColor.r, densityGradient);
                                             lineColor.g = this.interpolate(lineColor.g, skyBoxColor.g, densityGradient);
                                             lineColor.b = this.interpolate(lineColor.b, skyBoxColor.b, densityGradient);

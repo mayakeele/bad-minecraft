@@ -14,10 +14,10 @@ var currSunDirection = sunDefaultDirection;
 sunAxis.normalize();
 sunDefaultDirection.normalize();
 
-var sunDefaultBrightness = 0.8;
+var sunDefaultBrightness = 0.75;
 var dayLength = 180;
 var sunSpeed = Math.PI / dayLength;
-var sunAngle = Math.PI / 8;
+var sunAngle = 0;
 
 var sunLight = new SoftEngine.Light("Sun", LightType.Directional, sunny, sunDefaultBrightness);
 sunLight.Direction = sunDefaultDirection;
@@ -26,7 +26,7 @@ lights.push(sunLight);
 //var torchLight = new SoftEngine.Light("torch", LightType.Point, sunriseGold, 2.5);
 //lights.push(torchLight);
 
-var renderDistance = 3;
+var renderDistance = 4;
 var chunksPerEdge = 2 * renderDistance + 1;
 var chunkWidth = 8;
 var chunkHeight = 8;
@@ -88,7 +88,7 @@ var blockTransparency = [null,
 
 var liquidID = [4, 9, 13]
 
-var maskColor = new BABYLON.Color(0, 0, 0);
+var maskColor = new BABYLON.Color3(0, 0, 0);
 
 var seaLevel = 24;
 
@@ -194,24 +194,32 @@ function loop() {
     }
     
 
-    // Change the angle of the sun throughout the day, and adjust the light intensity based on time of day
+    // Change the angle of the sun throughout the day, and adjust the light color intensity based on time of day
     sunAngle += sunSpeed * deltaTime;
     let sunRotationMatrix = BABYLON.Matrix.RotationAxis(sunAxis, sunAngle);
     currSunDirection = BABYLON.Vector3.TransformNormal(sunDefaultDirection, sunRotationMatrix);
     sunLight.Direction = currSunDirection;
 
     let newSunBrightness = 0;
+    // Sunrise
     if (sunAngle >= 0 && sunAngle < Math.PI / 8){
         newSunBrightness = 2.54648 * sunAngle * sunDefaultBrightness;
+        sunLight.Color = BABYLON.Color3.Interpolate(sunriseGold, sunny, sunAngle / (Math.PI/8));
     }
+    // Daylight
     else if (sunAngle >= Math.PI / 8 && sunAngle < Math.PI * 7/8){
         newSunBrightness = sunDefaultBrightness;
+        sunLight.Color = sunny;
     }
+    // Sunset
     else if (sunAngle >= Math.PI * 7/8 && sunAngle < Math.PI){
         newSunBrightness = ((-2.54648 * sunAngle) + 8) * sunDefaultBrightness;
+        sunLight.Color = BABYLON.Color3.Interpolate(sunny, sunsetOrange, (sunAngle - (Math.PI * 7/8)) / (Math.PI/8));
     }
+    // Night
     else if (sunAngle >= Math.PI && sunAngle < Math.PI * 2){
         newSunBrightness = 0;
+        sunLight.Color = sunsetOrange;
     }
     else{
         sunAngle = 0;
@@ -222,9 +230,9 @@ function loop() {
     
     currBlock = new BABYLON.Vector3(Math.round(cam.Position.x), Math.round(cam.Position.y), Math.round(cam.Position.z));
 
-
     collisionData = GetBlockData(currBlock.x, currBlock.y, currBlock.z);
     UpdateColorMask();
+
 
     // Remove targeted solid block if LMB is clicked
     if (leftMouseDown) {
@@ -259,7 +267,7 @@ function loop() {
             for (let currDist = 0; currDist <= interactionDist; currDist += step){
 				let targetX = Math.round(cam.Position.x + (camDirection.x * currDist));
 				let targetY = Math.round(cam.Position.y + (camDirection.y * currDist));
-				let targetZ = Math.round(cam.Position.z + (camDirection.z * currDist));
+                let targetZ = Math.round(cam.Position.z + (camDirection.z * currDist));
 
                 let blockID = GetBlockData(targetX, targetY, targetZ);
                 if (blockID !== 0 && !liquidID.includes(blockID)) {
@@ -269,15 +277,20 @@ function loop() {
                     let targetY = Math.round(cam.Position.y + (camDirection.y * currDist));
                     let targetZ = Math.round(cam.Position.z + (camDirection.z * currDist));
 
+                    let hDist = Math.sqrt(Math.pow(targetX - cam.Position.x, 2) + Math.pow(targetZ - cam.Position.z, 2));
+                    let vDist = targetY - cam.Position.y;
+                    
                     blockID = GetBlockData(targetX, targetY, targetZ);
-                    if (currDist > 2.5 && (blockID === 0 || liquidID.includes(blockID))) {
-                        PlaceBlock(targetX, targetY, targetZ, blockInHand);
-
-                        let key = Create3DCoordsKey(targetX, targetY, targetZ);
-                        let lightData = CalculateBlockLighting(targetX, targetY, targetZ, visibleFaces[key]);
-                        SetBlockLightData(targetX, targetY, targetZ, lightData);
+                    if (blockID === 0 || liquidID.includes(blockID)){
+                        if ( !(hDist < playerRadius + 0.707 && (vDist > -playerHeight - 0.5 && vDist < 0.5)) ) {
+                            PlaceBlock(targetX, targetY, targetZ, blockInHand);
+    
+                            let key = Create3DCoordsKey(targetX, targetY, targetZ);
+                            let lightData = CalculateBlockLighting(targetX, targetY, targetZ, visibleFaces[key]);
+                            SetBlockLightData(targetX, targetY, targetZ, lightData);
+                        }
                     }
-
+                    
                     break;
 				}
 			}
@@ -289,7 +302,7 @@ function loop() {
 
 
     // Wall collision, detects intersection between the player's radius and all 24 of the surrounding blocks
-    for (let y = -2; y <= 0; y++) {
+    for (let y = -Math.trunc(playerHeight); y <= 0; y++) {
 
         for (let x = -1; x <= 1; x++) {
 
@@ -1382,16 +1395,16 @@ function Create3DCoordsKey(x, y, z){
 
 function UpdateColorMask(){   
     if(collisionData === 4){
-        maskColor = new BABYLON.Color(-40, -30, 70);
+        maskColor = new BABYLON.Color3(-40, -30, 70);
     }
     else if (collisionData === 9) {
         maskColor = colorID[9];
     }
     else if (collisionData === 13) {
-        maskColor = new BABYLON.Color(-50, 30, 20);
+        maskColor = new BABYLON.Color3(-50, 30, 20);
     }
     else{
-        maskColor = new BABYLON.Color(0, 0, 0);
+        maskColor = new BABYLON.Color3(0, 0, 0);
     }
 }
 
@@ -1531,4 +1544,11 @@ function FaceNumberToNormal(faceNumber){
         default:
             return new BABYLON.Vector3(0, 0, 0);
     }
+}
+
+function SetRenderDistance(dist){
+    renderDistance = dist;
+    chunksPerEdge = 2 * dist + 1;
+    ClearChunks();
+    LoadChunks(currChunk, dist);
 }

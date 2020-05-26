@@ -1,37 +1,37 @@
 var BABYLON;
 (function (BABYLON) {
-    var Color = (function () {
-        function Color(initialR, initialG, initialB) {
+    var Color3 = (function () {
+        function Color3(initialR, initialG, initialB) {
             this.r = initialR;
             this.g = initialG;
             this.b = initialB;
         }
 
-        Color.prototype.toString = function () {
+        Color3.prototype.toString = function () {
             return "{R: " + this.r + " G:" + this.g + " B:" + this.b + " A:" + this.a + "}";
         };
 
-        Color.prototype.add = function(other){
-            return new Color(this.r + other.r, this.g + other.g, this.b + other.b);
+        Color3.prototype.add = function(other){
+            return new Color3(this.r + other.r, this.g + other.g, this.b + other.b);
         };
 
-        Color.prototype.subtract = function(other){
-            return new Color(this.r - other.r, this.g - other.g, this.b - other.b);
+        Color3.prototype.subtract = function(other){
+            return new Color3(this.r - other.r, this.g - other.g, this.b - other.b);
         };
 
-        Color.prototype.scale = function(scalar){
-            return new Color(this.r * scalar, this.g * scalar, this.b * scalar);
+        Color3.prototype.scale = function(scalar){
+            return new Color3(this.r * scalar, this.g * scalar, this.b * scalar);
         };
 
-        Color.Interpolate = function Interpolate(colorA, colorB, gradient) {
+        Color3.Interpolate = function Interpolate(colorA, colorB, gradient) {
             let difference = colorB.subtract(colorA);
             return colorA.add(difference.scale(gradient));
         };
 
-        return Color;
+        return Color3;
     })();
 
-    BABYLON.Color = Color;    
+    BABYLON.Color3 = Color3;    
     var Vector2 = (function () {
         function Vector2(initialX, initialY) {
             this.x = initialX;
