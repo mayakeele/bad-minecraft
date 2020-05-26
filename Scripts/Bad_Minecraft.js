@@ -203,30 +203,34 @@ function loop() {
     let newSunBrightness = 0;
     // Sunrise
     if (sunAngle >= 0 && sunAngle < Math.PI / 8){
+        let gradient = sunAngle / (Math.PI/8);
         newSunBrightness = 2.54648 * sunAngle * sunDefaultBrightness;
-        sunLight.Color = BABYLON.Color3.Interpolate(sunriseGold, sunny, sunAngle / (Math.PI/8));
+        sunLight.Color = BABYLON.Color3.Interpolate(sunriseGold, sunny, gradient);
+        skyBoxColor = BABYLON.Color3.Interpolate(midnightBlue, skyBlue, gradient);
     }
     // Daylight
     else if (sunAngle >= Math.PI / 8 && sunAngle < Math.PI * 7/8){
         newSunBrightness = sunDefaultBrightness;
         sunLight.Color = sunny;
+        skyBoxColor = skyBlue
     }
     // Sunset
     else if (sunAngle >= Math.PI * 7/8 && sunAngle < Math.PI){
+        let gradient = (sunAngle - (Math.PI * 7/8)) / (Math.PI/8);
         newSunBrightness = ((-2.54648 * sunAngle) + 8) * sunDefaultBrightness;
-        sunLight.Color = BABYLON.Color3.Interpolate(sunny, sunsetOrange, (sunAngle - (Math.PI * 7/8)) / (Math.PI/8));
+        sunLight.Color = BABYLON.Color3.Interpolate(sunny, sunsetOrange, gradient);
+        skyBoxColor = BABYLON.Color3.Interpolate(skyBlue, midnightBlue, gradient);
     }
     // Night
     else if (sunAngle >= Math.PI && sunAngle < Math.PI * 2){
         newSunBrightness = 0;
-        sunLight.Color = sunsetOrange;
+        sunLight.Color = midnightBlue;
     }
     else{
         sunAngle = 0;
     }
 
     sunLight.Intensity = newSunBrightness;
-    
     
     currBlock = new BABYLON.Vector3(Math.round(cam.Position.x), Math.round(cam.Position.y), Math.round(cam.Position.z));
 
