@@ -97,7 +97,7 @@
             this.backbufferdata[index4] = color.r;
             this.backbufferdata[index4 + 1] = color.g;
             this.backbufferdata[index4 + 2] = color.b;
-            this.backbufferdata[index4 + 3] = color.a;
+            this.backbufferdata[index4 + 3] = 255;
         };
 
         // Project takes some 3D coordinates and transform them
@@ -411,7 +411,7 @@
 
                                 // First, add ambient light
                                 var ndotl = 0;
-                                var outputColor = new BABYLON.Color4(ambientLight * faceColor.r, ambientLight * faceColor.g, ambientLight * faceColor.b, faceColor.a);                                
+                                var outputColor = new BABYLON.Color(ambientLight * faceColor.r, ambientLight * faceColor.g, ambientLight * faceColor.b);
 
                                 switch (currLightingMode){
 
@@ -502,7 +502,7 @@
                                         outputColor.b = this.interpolate(outputColor.b, skyBoxColor.b, densityGradient);
 
                                         if (showWires) {
-                                            var lineColor = new BABYLON.Color4(0, 0, 0, 255);
+                                            var lineColor = new BABYLON.Color(0, 0, 0);
                                             lineColor.r = this.interpolate(lineColor.r, skyBoxColor.r, densityGradient);
                                             lineColor.g = this.interpolate(lineColor.g, skyBoxColor.g, densityGradient);
                                             lineColor.b = this.interpolate(lineColor.b, skyBoxColor.b, densityGradient);
@@ -515,7 +515,7 @@
                                 outputColor.g += maskColor.g;
                                 outputColor.b += maskColor.b;
 
-                                this.drawTriangle(pixelA, pixelB, pixelC, outputColor);//new BABYLON.Color4(ndotl * faceColor.r, ndotl * faceColor.g, ndotl * faceColor.b, 255));
+                                this.drawTriangle(pixelA, pixelB, pixelC, outputColor);
 
                                 // Draw lines around face edges
                                 if (showWires) {

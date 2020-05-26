@@ -23,45 +23,45 @@ var wireOffset = 0.000075;
 var rotSpeed = 0.1 * Math.PI*2;  // In rotations per second, " * " converts from rad to rot
 
 // r,g,b,a are from 0 to 255
-var clear = new BABYLON.Color4(0, 0, 0, 0);
-var white = new BABYLON.Color4(255, 255, 255, 255);
-var black = new BABYLON.Color4(0, 0, 0, 255);
-var red = new BABYLON.Color4(255, 0, 0, 255);
-var orange = new BABYLON.Color4(255, 150, 0, 255);
-var yellow = new BABYLON.Color4(255, 235, 40, 255);
-var green = new BABYLON.Color4(0, 255, 0, 255);
-var blue = new BABYLON.Color4(0, 0, 255, 255);
-var indigo = new BABYLON.Color4(140, 30, 255, 255);
-var synthPink = new BABYLON.Color4(242, 34, 255, 255);
-var synthMagenta = new BABYLON.Color4(255, 41, 117, 255);
-var sunny = new BABYLON.Color4(255, 252, 211, 255);
-var lightGray = new BABYLON.Color4(220, 220, 220, 255);
-var alphaGrassGreen = new BABYLON.Color4(40, 255, 80, 255);
+var clear = new BABYLON.Color(0, 0, 0);
+var white = new BABYLON.Color(255, 255, 255);
+var black = new BABYLON.Color(0, 0, 0);
+var red = new BABYLON.Color(255, 0, 0);
+var orange = new BABYLON.Color(255, 150, 0);
+var yellow = new BABYLON.Color(255, 235, 40);
+var green = new BABYLON.Color(0, 0, 255);
+var blue = new BABYLON.Color(0, 0, 255);
+var indigo = new BABYLON.Color(140, 30, 255);
+var synthPink = new BABYLON.Color(242, 34, 255);
+var synthMagenta = new BABYLON.Color(255, 41, 117);
+var sunny = new BABYLON.Color(255, 252, 211);
+var lightGray = new BABYLON.Color(220, 220, 220);
+var alphaGrassGreen = new BABYLON.Color(40, 255, 80);
 
 
-var skyBlue = new BABYLON.Color4(133, 216, 237, 255)
-var sunsetPurple = new BABYLON.Color4(112, 34, 241, 255);
-var hellishRed = new BABYLON.Color4(208, 11, 11, 255);
-var twilightBlue = new BABYLON.Color4(12, 34, 99, 255);
-var rainyGray = new BABYLON.Color4(93, 98, 120, 255);
-var sunriseGold = new BABYLON.Color4(255, 194, 73, 255);
-var midnightBlue = new BABYLON.Color4(6, 13, 28, 255);
+var skyBlue = new BABYLON.Color(133, 216, 237)
+var sunsetPurple = new BABYLON.Color(112, 34, 241);
+var hellishRed = new BABYLON.Color(208, 11, 11);
+var twilightBlue = new BABYLON.Color(12, 34, 99);
+var rainyGray = new BABYLON.Color(93, 98, 120);
+var sunriseGold = new BABYLON.Color(255, 194, 73);
+var midnightBlue = new BABYLON.Color(6, 13, 28);
 
-var stoneGray = new BABYLON.Color4(150, 150, 150, 255);
-var topsoilBrown = new BABYLON.Color4(109, 82, 43, 255);
-var brightGrassGreen = new BABYLON.Color4(87, 185, 39, 255);
-var waterBlue = new BABYLON.Color4(22, 85, 222, 255);
-var sandBeige = new BABYLON.Color4(240, 225, 150, 255);
-var woodBrown = new BABYLON.Color4(74, 50, 17, 255);
-var leafGreen = new BABYLON.Color4(61, 140, 21, 255);
-var cactusGreen = new BABYLON.Color4(124, 168, 0, 255);
-var lavaRed = new BABYLON.Color4(255, 82, 35, 255);
-var rockRed = new BABYLON.Color4(203, 109, 49, 255);
-var cobblestoneGrey = new BABYLON.Color4(98, 94, 90, 255);
-var snowWhite = new BABYLON.Color4(250, 250, 250, 255);
-var waterTurquoise = new BABYLON.Color4(68, 151, 128, 255);
-var cloudGrey = new BABYLON.Color4(211, 220, 236, 255);
-var torchOrange = new BABYLON.Color4(255, 180, 56, 255);
+var stoneGray = new BABYLON.Color(150, 150, 150);
+var topsoilBrown = new BABYLON.Color(109, 82, 43);
+var brightGrassGreen = new BABYLON.Color(87, 185, 39);
+var waterBlue = new BABYLON.Color(22, 85, 222);
+var sandBeige = new BABYLON.Color(240, 225, 150);
+var woodBrown = new BABYLON.Color(74, 50, 17);
+var leafGreen = new BABYLON.Color(61, 140, 21);
+var cactusGreen = new BABYLON.Color(124, 168, 0);
+var lavaRed = new BABYLON.Color(255, 82, 35);
+var rockRed = new BABYLON.Color(203, 109, 49);
+var cobblestoneGrey = new BABYLON.Color(98, 94, 90);
+var snowWhite = new BABYLON.Color(250, 250, 250);
+var waterTurquoise = new BABYLON.Color(68, 151, 128);
+var cloudGrey = new BABYLON.Color(211, 220, 236);
+var torchOrange = new BABYLON.Color(255, 180, 56);
 
 
 

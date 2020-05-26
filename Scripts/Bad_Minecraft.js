@@ -26,7 +26,7 @@ lights.push(sunLight);
 //var torchLight = new SoftEngine.Light("torch", LightType.Point, sunriseGold, 2.5);
 //lights.push(torchLight);
 
-var renderDistance = 4;
+var renderDistance = 3;
 var chunksPerEdge = 2 * renderDistance + 1;
 var chunkWidth = 8;
 var chunkHeight = 8;
@@ -71,24 +71,24 @@ var colorID = [null,
 var blockTransparency = [null,
     0,
     0,
-    0,
+    0.2,
     0.8,
-    0,
-    0,
+    0.2,
+    0.2,
+    0.5,
     0.4,
     0,
     0,
     0,
-    0,
-    0,
+    0.2,
     0.6,
-    0.6,
+    0.7,
     0
 ];
 
 var liquidID = [4, 9, 13]
 
-var maskColor = new BABYLON.Color4(0, 0, 0, 255);
+var maskColor = new BABYLON.Color(0, 0, 0);
 
 var seaLevel = 24;
 
@@ -1382,16 +1382,16 @@ function Create3DCoordsKey(x, y, z){
 
 function UpdateColorMask(){   
     if(collisionData === 4){
-        maskColor = new BABYLON.Color4(-40, -30, 70, 255);
+        maskColor = new BABYLON.Color(-40, -30, 70);
     }
     else if (collisionData === 9) {
         maskColor = colorID[9];
     }
     else if (collisionData === 13) {
-        maskColor = new BABYLON.Color4(-50, 30, 20, 255);
+        maskColor = new BABYLON.Color(-50, 30, 20);
     }
     else{
-        maskColor = new BABYLON.Color4(0, 0, 0, 255);
+        maskColor = new BABYLON.Color(0, 0, 0);
     }
 }
 
