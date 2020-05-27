@@ -39,9 +39,10 @@ var chunkUpdateCoords = BABYLON.Vector3.Zero();
 var blockData = Create3DArray(worldWidth, worldHeight, worldWidth);
 var visibleFaces = {};
 
-var currLightData = {};
+var sourceLightData = {};
+var faceLightData = {};
 var maxLightLevel = 15;
-var lightStepLength = 1.5;
+var lightStepLength = 1;
 var maxLightSteps = 40;
 var lightUpdatesPerFrame = Math.pow(2 * renderDistance + 1, 2);
 
@@ -86,7 +87,9 @@ var blockTransparency = [null,
     0
 ];
 
-var liquidID = [4, 9, 13]
+var liquids = [4, 9, 13];
+var lightSources = [9, 15];
+
 
 var maskColor = new BABYLON.Color3(0, 0, 0);
 
@@ -159,7 +162,9 @@ function setup() {
     
     document.getElementById("seedStat").innerHTML = "Seed: " + worldSeed;
     document.getElementById("blockInHandStat").innerHTML = "Block in Hand: " + blockInHand;
-		
+
+    CalculateVolumeLightSources(new BABYLON.Vector3(0, 0, 0), new BABYLON.Vector3(worldWidth-1, worldHeight-1, worldWidth-1));
+    //console.log(sourceLightData);
 }
 
 function loop() {
@@ -251,7 +256,7 @@ function loop() {
 				let targetZ = Math.round(cam.Position.z + (camDirection.z * currDist));
                 
                 let blockID = GetBlockData(targetX, targetY, targetZ);
-				if (blockID !== 0 && !liquidID.includes(blockID)) {
+				if (blockID !== 0 && !liquids.includes(blockID)) {
 					RemoveBlock(targetX, targetY, targetZ);
 					break;
 				}
@@ -274,7 +279,7 @@ function loop() {
                 let targetZ = Math.round(cam.Position.z + (camDirection.z * currDist));
 
                 let blockID = GetBlockData(targetX, targetY, targetZ);
-                if (blockID !== 0 && !liquidID.includes(blockID)) {
+                if (blockID !== 0 && !liquids.includes(blockID)) {
                     // March backwards one step and place a block
                     currDist -= step;
                     let targetX = Math.round(cam.Position.x + (camDirection.x * currDist));
@@ -285,7 +290,7 @@ function loop() {
                     let vDist = targetY - cam.Position.y;
                     
                     blockID = GetBlockData(targetX, targetY, targetZ);
-                    if (blockID === 0 || liquidID.includes(blockID)){
+                    if (blockID === 0 || liquids.includes(blockID)){
                         if ( !(hDist < playerRadius + 0.707 && (vDist > -playerHeight - 0.5 && vDist < 0.5)) ) {
                             PlaceBlock(targetX, targetY, targetZ, blockInHand);
     
@@ -319,7 +324,7 @@ function loop() {
 				
 				let thisBlock = GetBlockData(x + currBlock.x, y + currBlock.y, z + currBlock.z);
 
-                if (thisBlock !== 0 && !liquidID.includes(thisBlock)) {
+                if (thisBlock !== 0 && !liquids.includes(thisBlock)) {
                     let circlePos = new BABYLON.Vector2(cam.Position.x, cam.Position.z);
                     let squarePos = new BABYLON.Vector2(x + currBlock.x, z + currBlock.z);
 
@@ -374,7 +379,7 @@ function loop() {
         let blockBelow = GetBlockData(blockPos.x, blockPos.y, blockPos.z);
 
         // If block is not air or a liquid, then set y velocity to 0 and snap player to the top of the block
-        if (blockBelow !== 0 && !liquidID.includes(blockBelow)) {
+        if (blockBelow !== 0 && !liquids.includes(blockBelow)) {
             playerVel.y = 0;
             let surfacePos = new BABYLON.Vector3(cam.Position.x, blockPos.y + 0.5 + playerHeight, cam.Position.z);
             moveCameraToPosition(cam, surfacePos);
@@ -394,7 +399,7 @@ function loop() {
         let blockAbove = GetBlockData(blockPos.x, blockPos.y, blockPos.z);
 
         // If block is not air or a liquid, then set y velocity to 0 and snap player to the top of the block
-        if (blockAbove !== 0 && !liquidID.includes(blockAbove)) {
+        if (blockAbove !== 0 && !liquids.includes(blockAbove)) {
             playerVel.y = 0;
             let surfacePos = new BABYLON.Vector3(cam.Position.x, blockPos.y - 1, cam.Position.z);
             moveCameraToPosition(cam, surfacePos);
@@ -892,7 +897,7 @@ function GenerateWorld() {
 	// Generate lower lava layer
     for (let x = 1; x < worldWidth-1; x++) {
         for (let z = 1; z < worldWidth-1; z++) {           
-            SetBlockData(x, 0, z, 9);
+            SetBlockData(x, 0, z, 4);
         }
     }
 
@@ -922,7 +927,7 @@ function GenerateWorld() {
 						SetBlockData(thisBlock.x, thisBlock.y, thisBlock.z, 4);
 					}
 					// Terminate if liquid has been reached
-					else if (liquidID.includes(blockBelow)){
+					else if (liquids.includes(blockBelow)){
 						break;
 					}
 					
@@ -1059,7 +1064,7 @@ function CalculateChunkLighting(chunkCoords){
                     lightData = [0, 0, 0, 0, 0, 0];
                 }
                 
-                currLightData[key] = lightData;
+                faceLightData[key] = lightData;
             }
         }
     }
@@ -1115,40 +1120,40 @@ function CreateFaceMeshes(x, y, z) {
     let key = Create3DCoordsKey(x, y, z);
     let values = [false, false, false, false, false, false];
     
-    if(liquidID.includes(blockID)){
+    if(liquids.includes(blockID)){
         // Only render liquid faces if they border air or a different liquid
         
-        if (blockYP != blockID && liquidID.includes(blockYP) || blockYP === 0) {
+        if (blockYP != blockID && liquids.includes(blockYP) || blockYP === 0) {
             let thisFace = newFace("face", 'y', 1, blockColor);
             thisFace.Position = new BABYLON.Vector3(x, y, z);
             thisFace.Direction = 3;
             values[thisFace.Direction - 1] = true;
         }
-        if (blockYN != blockID && liquidID.includes(blockYN) || blockYN === 0) {
+        if (blockYN != blockID && liquids.includes(blockYN) || blockYN === 0) {
             let thisFace = newFace("face", 'y', -1, blockColor);
             thisFace.Position = new BABYLON.Vector3(x, y, z);
             thisFace.Direction = 4;
             values[thisFace.Direction - 1] = true;
         }
-        if (blockZP != blockID && liquidID.includes(blockZP) || blockZP === 0) {
+        if (blockZP != blockID && liquids.includes(blockZP) || blockZP === 0) {
             let thisFace = newFace("face", 'z', 1, blockColor);
             thisFace.Position = new BABYLON.Vector3(x, y, z);
             thisFace.Direction = 5;
             values[thisFace.Direction - 1] = true;
         }
-        if (blockZN != blockID && liquidID.includes(blockZN) || blockZN === 0) {
+        if (blockZN != blockID && liquids.includes(blockZN) || blockZN === 0) {
             let thisFace = newFace("face", 'z', -1, blockColor);
             thisFace.Position = new BABYLON.Vector3(x, y, z);
             thisFace.Direction = 6;
             values[thisFace.Direction - 1] = true;
         }
-        if (blockXP != blockID && liquidID.includes(blockXP) || blockXP === 0) {
+        if (blockXP != blockID && liquids.includes(blockXP) || blockXP === 0) {
             let thisFace = newFace("face", 'x', 1, blockColor);
             thisFace.Position = new BABYLON.Vector3(x, y, z);
             thisFace.Direction = 1;
             values[thisFace.Direction - 1] = true;
         }
-        if (blockXN != blockID && liquidID.includes(blockXN) || blockXN === 0) {
+        if (blockXN != blockID && liquids.includes(blockXN) || blockXN === 0) {
             let thisFace = newFace("face", 'x', -1, blockColor);
             thisFace.Position = new BABYLON.Vector3(x, y, z);
             thisFace.Direction = 2;
@@ -1159,37 +1164,37 @@ function CreateFaceMeshes(x, y, z) {
     else{
         // Render solid faces if they border air or liquid
         
-        if (blockYP === 0 || liquidID.includes(blockYP)) {
+        if (blockYP === 0 || liquids.includes(blockYP)) {
             let thisFace = newFace("face", 'y', 1, blockColor);
             thisFace.Position = new BABYLON.Vector3(x, y, z);
             thisFace.Direction = 3;
             values[thisFace.Direction - 1] = true;
         }
-        if (blockYN === 0 || liquidID.includes(blockYN)) {
+        if (blockYN === 0 || liquids.includes(blockYN)) {
             let thisFace = newFace("face", 'y', -1, blockColor);
             thisFace.Position = new BABYLON.Vector3(x, y, z);
             thisFace.Direction = 4;
             values[thisFace.Direction - 1] = true;
         }
-        if (blockZP === 0 || liquidID.includes(blockZP)) {
+        if (blockZP === 0 || liquids.includes(blockZP)) {
             let thisFace = newFace("face", 'z', 1, blockColor);
             thisFace.Position = new BABYLON.Vector3(x, y, z);
             thisFace.Direction = 5;
             values[thisFace.Direction - 1] = true;
         }
-        if (blockZN === 0 || liquidID.includes(blockZN)) {
+        if (blockZN === 0 || liquids.includes(blockZN)) {
             let thisFace = newFace("face", 'z', -1, blockColor);
             thisFace.Position = new BABYLON.Vector3(x, y, z);
             thisFace.Direction = 6;
             values[thisFace.Direction - 1] = true;
         }
-        if (blockXP === 0 || liquidID.includes(blockXP)) {
+        if (blockXP === 0 || liquids.includes(blockXP)) {
             let thisFace = newFace("face", 'x', 1, blockColor);
             thisFace.Position = new BABYLON.Vector3(x, y, z);
             thisFace.Direction = 1;
             values[thisFace.Direction - 1] = true;
         }
-        if (blockXN === 0 || liquidID.includes(blockXN)) {
+        if (blockXN === 0 || liquids.includes(blockXN)) {
             let thisFace = newFace("face", 'x', -1, blockColor);
             thisFace.Position = new BABYLON.Vector3(x, y, z);
             thisFace.Direction = 2;
@@ -1231,62 +1236,6 @@ function PlaceBlock(x, y, z, ID){
     }
 }*/
 
-
-function LoadBlocks(blockCoords, dist) {
-    // Load in blocks surrounding the target
-    for (let x = blockCoords.x - dist; x <= blockCoords.x + dist; x++) {
-        if (x < 0) { x = 0; }
-        if (x > worldWidth) { x = blockCoords.x + dist; }
-
-        for (let y = blockCoords.y - dist; y <= blockCoords.y + dist; y++) {
-            if (y < 0) { y = 0; }
-            if (y > worldHeight) { y = blockCoords.y + dist; }
-
-            for (let z = blockCoords.z - dist; z <= blockCoords.z + dist; z++) {
-                if (z < 0) { z = 0; }
-                if (z > worldWidth) { z = blockCoords.z + dist; }
-
-                if (x != blockCoords.x && y != blockCoords.y && z != blockCoords.z) {
-                    CreateFaceMeshes(x, y, z);
-                }
-            }
-        }
-    }
-}
-
-
-function ClearBlocks(blockCoords, dist) {
-    for (let i = 0; i <= 6; i++) {
-        let thisIndex = blockIndexes[blockCoords.x][blockCoords.y][blockCoords.z][i];
-        if (thisIndex != 0) {
-            meshes[thisIndex] = newEmptyMesh();
-        }
-        thisIndex = blockIndexes[blockCoords.x + 1][blockCoords.y][blockCoords.z][i];
-        if (thisIndex != 0) {
-            meshes[thisIndex] = newEmptyMesh();
-        }
-        thisIndex = blockIndexes[blockCoords.x - 1][blockCoords.y][blockCoords.z][i];
-        if (thisIndex != 0) {
-            meshes[thisIndex] = newEmptyMesh();
-        }
-        thisIndex = blockIndexes[blockCoords.x][blockCoords.y + 1][blockCoords.z][i];
-        if (thisIndex != 0) {
-            meshes[thisIndex] = newEmptyMesh();
-        }
-        thisIndex = blockIndexes[blockCoords.x][blockCoords.y - 1][blockCoords.z][i];
-        if (thisIndex != 0) {
-            meshes[thisIndex] = newEmptyMesh();
-        }
-        thisIndex = blockIndexes[blockCoords.x][blockCoords.y][blockCoords.z + 1][i];
-        if (thisIndex != 0) {
-            meshes[thisIndex] = newEmptyMesh();
-        }
-        thisIndex = blockIndexes[blockCoords.x][blockCoords.y][blockCoords.z - 1][i];
-        if (thisIndex != 0) {
-            meshes[thisIndex] = newEmptyMesh();
-        }
-    }
-}
 
 
 function LoadChunks(chunkCoords, distance) {
@@ -1372,8 +1321,8 @@ function GetBlockLightData(x, y, z){
     let key = x + "," + y + "," + z;
     let values = [];
 
-    if (currLightData.hasOwnProperty(key)){
-        values = currLightData[key];
+    if (faceLightData.hasOwnProperty(key)){
+        values = faceLightData[key];
 
         if (values == undefined){
             values = [0, 0, 0, 0, 0, 0];
@@ -1388,12 +1337,71 @@ function GetBlockLightData(x, y, z){
 
 function SetBlockLightData(x, y, z, values){
     let key = x + "," + y + "," + z;
-    currLightData[key] = values;
+    faceLightData[key] = values;
 }
 
 function Create3DCoordsKey(x, y, z){
     let key = x + "," + y + "," + z;
     return key;
+}
+
+function CalculateLightSource(lightNode){
+    
+}
+
+function CalculateVolumeLightSources(minCoords, maxCoords){
+    // Calculates light values for all transparent blocks affected by light source blocks in a given 3D volume
+    // Nodes are used to store the light data at a point, and are put in a queue to be processed (added to the queue at index 0, taken out of queue at end of array)
+    minCoords = minCoords.clamp(new BABYLON.Vector3(0, 0, 0), new BABYLON.Vector3(worldWidth-1, worldHeight-1, worldWidth-1));
+    maxCoords = maxCoords.clamp(new BABYLON.Vector3(0, 0, 0), new BABYLON.Vector3(worldWidth-1, worldHeight-1, worldWidth-1));
+
+    let lightQueue = [];
+
+    for (let x = minCoords.x; x <= maxCoords.x; x++){
+        for (let y = minCoords.y; y <= maxCoords.y; y++){
+            for (let z = minCoords.z; z <= maxCoords.z; z++){
+                let blockID = GetBlockData(x, y, z);
+
+                if (lightSources.includes(blockID)){
+                    lightQueue.push(new BABYLON.LightNode(new BABYLON.Vector3(x, y, z), maxLightLevel));
+                }
+            }
+        }
+    }
+
+    iterations = 0;
+    while (lightQueue.length > 0 && iterations < 2){
+        let thisNode = lightQueue.pop();
+        let newLightValue = thisNode.lightValue - 1;
+
+        if (newLightValue > 0){
+
+            for (let s = 0; s < 6; s++){
+                let direction = FaceNumberToNormal(s);
+                let adjacentPos = thisNode.position.add(direction);
+
+                if (adjacentPos.isWithinBounds(new BABYLON.Vector3(0, 0, 0), new BABYLON.Vector3(worldWidth-1, worldHeight-1, worldWidth-1))){
+                    let adjacentID = GetBlockData(adjacentPos.x, adjacentPos.y, adjacentPos.z);
+    
+                    if (adjacentID === 0){
+                        let key = Create3DCoordsKey(adjacentPos.x, adjacentPos.y, adjacentPos.z);
+                        let adjacentLightValue = sourceLightData[key];
+        
+                        if (adjacentLightValue === undefined || adjacentLightValue < newLightValue){
+                            sourceLightData[key] = newLightValue;
+                            lightQueue.unshift(new BABYLON.LightNode(adjacentPos, newLightValue));
+                        }
+                    }
+                }
+
+                else{
+                    continue;
+                }
+            }
+        }
+        
+        
+    }
 }
 
 
@@ -1516,6 +1524,11 @@ function DegToRad(deg){
 function RadToDeg(rad){
     let deg = rad * 180 / Math.PI;
     return deg;
+}
+
+function clampValue(value, minimum, maximum) {
+    let clampedVal = Math.min(maximum, Math.max(minimum, value));
+    return clampedVal;
 }
 
 function FaceNumberToNormal(faceNumber){
