@@ -12,15 +12,16 @@
     SoftEngine.Camera = Camera;
 
     var Mesh = (function () {
-        function Mesh(name, verticesCount, facesCount, faceColor, wireColor, wireShader) {
+        function Mesh(name, verticesCount, facesCount, faceColor) {
             this.name = name;
             this.Vertices = new Array(verticesCount);
             this.Faces = new Array(facesCount);
             this.Rotation = new BABYLON.Vector3(0, 0, 0);
             this.Position = new BABYLON.Vector3(0, 0, 0);
             this.FaceColor = faceColor;
-            this.WireColor = wireColor;
-            this.WireShader = wireShader;
+            this.FloodLightLevel = 0;
+            //this.WireColor = wireColor;
+            //this.WireShader = wireShader;
             this.Direction = 0;
             // 0: default, no direction
             // 1: xP

@@ -1087,20 +1087,18 @@ function Unflatten3DGrid(index, width){
 
 
 function CreateFaceMeshes(x, y, z) {
-
     if (x >= worldWidth || x < 0 || y >= worldHeight || y < 0 || z >= worldWidth || z < 0) {
         return;
     }
 
     let yHigh = Math.min(y + 1, worldHeight - 1);
     let yLow = Math.max(y - 1, 0);
-
     let zHigh = Math.min(z + 1, worldWidth - 1);
     let zLow = Math.max(z - 1, 0);
-
     let xHigh = Math.min(x + 1, worldWidth - 1);
     let xLow = Math.max(x - 1, 0);
 
+    let currPos = new BABYLON.Vector3(x, y, z);
 
     var blockID = GetBlockData(x, y, z);
     var blockColor = colorID[blockID];
@@ -1108,7 +1106,6 @@ function CreateFaceMeshes(x, y, z) {
     if (blockID === 0) {
         return;
     }
-
 
     let blockYP = blockData[x][yHigh][z];
     let blockYN = blockData[x][yLow][z];
@@ -1118,92 +1115,46 @@ function CreateFaceMeshes(x, y, z) {
     let blockXN = blockData[xLow][y][z];
     
     let key = Create3DCoordsKey(x, y, z);
-    let values = [false, false, false, false, false, false];
+    let faceVisibility = [false, false, false, false, false, false];
     
     if(liquids.includes(blockID)){
         // Only render liquid faces if they border air or a different liquid
         
-        if (blockYP != blockID && liquids.includes(blockYP) || blockYP === 0) {
-            let thisFace = newFace("face", 'y', 1, blockColor);
-            thisFace.Position = new BABYLON.Vector3(x, y, z);
-            thisFace.Direction = 3;
-            values[thisFace.Direction - 1] = true;
-        }
-        if (blockYN != blockID && liquids.includes(blockYN) || blockYN === 0) {
-            let thisFace = newFace("face", 'y', -1, blockColor);
-            thisFace.Position = new BABYLON.Vector3(x, y, z);
-            thisFace.Direction = 4;
-            values[thisFace.Direction - 1] = true;
-        }
-        if (blockZP != blockID && liquids.includes(blockZP) || blockZP === 0) {
-            let thisFace = newFace("face", 'z', 1, blockColor);
-            thisFace.Position = new BABYLON.Vector3(x, y, z);
-            thisFace.Direction = 5;
-            values[thisFace.Direction - 1] = true;
-        }
-        if (blockZN != blockID && liquids.includes(blockZN) || blockZN === 0) {
-            let thisFace = newFace("face", 'z', -1, blockColor);
-            thisFace.Position = new BABYLON.Vector3(x, y, z);
-            thisFace.Direction = 6;
-            values[thisFace.Direction - 1] = true;
-        }
-        if (blockXP != blockID && liquids.includes(blockXP) || blockXP === 0) {
-            let thisFace = newFace("face", 'x', 1, blockColor);
-            thisFace.Position = new BABYLON.Vector3(x, y, z);
-            thisFace.Direction = 1;
-            values[thisFace.Direction - 1] = true;
-        }
-        if (blockXN != blockID && liquids.includes(blockXN) || blockXN === 0) {
-            let thisFace = newFace("face", 'x', -1, blockColor);
-            thisFace.Position = new BABYLON.Vector3(x, y, z);
-            thisFace.Direction = 2;
-            values[thisFace.Direction - 1] = true;
+        for (let s = 0; s < 6; s++){
+            let direction = FaceNumberToNormal(s);
+            let adjacentPos = currPos.add(direction);
+
+            let adjacentID = GetBlockData(adjacentPos.x, adjacentPos.y, adjacentPos.z);
+
+            if (adjacentID != blockID && liquids.includes(adjacentID) || adjacentID === 0) {
+                let thisFace = newFace("face", s, blockColor);
+                thisFace.Position = currPos;
+                thisFace.Direction = s + 1;
+                faceVisibility[s] = true;
+            }
         }
     }
     
     else{
         // Render solid faces if they border air or liquid
         
-        if (blockYP === 0 || liquids.includes(blockYP)) {
-            let thisFace = newFace("face", 'y', 1, blockColor);
-            thisFace.Position = new BABYLON.Vector3(x, y, z);
-            thisFace.Direction = 3;
-            values[thisFace.Direction - 1] = true;
-        }
-        if (blockYN === 0 || liquids.includes(blockYN)) {
-            let thisFace = newFace("face", 'y', -1, blockColor);
-            thisFace.Position = new BABYLON.Vector3(x, y, z);
-            thisFace.Direction = 4;
-            values[thisFace.Direction - 1] = true;
-        }
-        if (blockZP === 0 || liquids.includes(blockZP)) {
-            let thisFace = newFace("face", 'z', 1, blockColor);
-            thisFace.Position = new BABYLON.Vector3(x, y, z);
-            thisFace.Direction = 5;
-            values[thisFace.Direction - 1] = true;
-        }
-        if (blockZN === 0 || liquids.includes(blockZN)) {
-            let thisFace = newFace("face", 'z', -1, blockColor);
-            thisFace.Position = new BABYLON.Vector3(x, y, z);
-            thisFace.Direction = 6;
-            values[thisFace.Direction - 1] = true;
-        }
-        if (blockXP === 0 || liquids.includes(blockXP)) {
-            let thisFace = newFace("face", 'x', 1, blockColor);
-            thisFace.Position = new BABYLON.Vector3(x, y, z);
-            thisFace.Direction = 1;
-            values[thisFace.Direction - 1] = true;
-        }
-        if (blockXN === 0 || liquids.includes(blockXN)) {
-            let thisFace = newFace("face", 'x', -1, blockColor);
-            thisFace.Position = new BABYLON.Vector3(x, y, z);
-            thisFace.Direction = 2;
-            values[thisFace.Direction - 1] = true;
+        for (let s = 0; s < 6; s++){
+            let direction = FaceNumberToNormal(s);
+            let adjacentPos = currPos.add(direction);
+
+            let adjacentID = GetBlockData(adjacentPos.x, adjacentPos.y, adjacentPos.z);
+
+            if (adjacentID === 0 || liquids.includes(adjacentID)) {
+                let thisFace = newFace("face", s, blockColor);
+                thisFace.Position = currPos;
+                thisFace.Direction = s + 1;
+                faceVisibility[s] = true;
+            }
         }
     }
 
-    if (values.includes(true)){
-        visibleFaces[key] = values;
+    if (faceVisibility.includes(true)){
+        visibleFaces[key] = faceVisibility;
     }
 }
 
