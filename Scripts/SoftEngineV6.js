@@ -19,7 +19,7 @@
             this.Rotation = new BABYLON.Vector3(0, 0, 0);
             this.Position = new BABYLON.Vector3(0, 0, 0);
             this.FaceColor = faceColor;
-            this.FloodLightLevel = 0;
+            this.VolumetricLightLevel = 0;
             //this.WireColor = wireColor;
             //this.WireShader = wireShader;
             this.Direction = 0;
@@ -476,12 +476,25 @@
                                     case LightingMode.Voxel:
                                         if (cMesh.Direction !== 0){
                                             let blockPos = cMesh.Position.round();
-                                            let lightData = GetBlockLightData(blockPos.x, blockPos.y, blockPos.z);
-                                            let lightLevel = lightData[cMesh.Direction - 1] / maxLightLevel;
+                                            let sunlightData = GetBlockLightData(blockPos.x, blockPos.y, blockPos.z);
+        
+                                            let sunlightLevel = sunlightData[cMesh.Direction - 1] / maxLightLevel;
+                                            let volumetricLightLevel = cMesh.VolumetricLightLevel / maxLightLevel;
+                                            
+                                            let displayLightLevel;
+                                            let displayLightColor;
+                                            if (sunlightLevel >= volumetricLightLevel){
+                                                displayLightLevel = sunlightLevel;
+                                                displayLightColor = sunLight.Color;
+                                            }
+                                            else{
+                                                displayLightLevel = volumetricLightLevel;
+                                                displayLightColor = torchOrange;
+                                            }
 
-                                            outputColor.r += lightLevel * faceColor.r * sunLight.Intensity * sunLight.Color.r / 255;
-                                            outputColor.g += lightLevel * faceColor.g * sunLight.Intensity * sunLight.Color.g / 255;
-                                            outputColor.b += lightLevel * faceColor.b * sunLight.Intensity * sunLight.Color.b / 255;
+                                            outputColor.r += displayLightLevel * faceColor.r * displayLightColor.r / 255;
+                                            outputColor.g += displayLightLevel * faceColor.g * displayLightColor.g / 255;
+                                            outputColor.b += displayLightLevel * faceColor.b * displayLightColor.b / 255;
                                         }
 
                                         break;
