@@ -19,14 +19,34 @@ var BABYLON;
             return new Color3(this.r - other.r, this.g - other.g, this.b - other.b);
         };
 
+        Color3.prototype.multiply = function(other){
+            return new Color3(this.r * other.r, this.g * other.g, this.b * other.b);
+        };
+
+        Color3.prototype.divide = function(other){
+            return new Color3(this.r / other.r, this.g / other.g, this.b / other.b);
+        };
+
         Color3.prototype.scale = function(scalar){
             return new Color3(this.r * scalar, this.g * scalar, this.b * scalar);
+        };
+
+        Color3.prototype.combine = function(other){
+            // Adds two colors together, mapping to a 0-255 scale if r g or b is greater than 255
+            let sum = this.add(other);
+
+            let maxChannel = Math.max(sum.r, sum.g, sum.b);
+            let scalar = maxChannel > 255  ?  255 / maxChannel  :  1;
+
+            return sum.scale(scalar);
         };
 
         Color3.Interpolate = function Interpolate(colorA, colorB, gradient) {
             let difference = colorB.subtract(colorA);
             return colorA.add(difference.scale(gradient));
         };
+
+        
 
         return Color3;
     })();

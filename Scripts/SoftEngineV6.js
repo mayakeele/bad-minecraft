@@ -481,20 +481,15 @@
                                             let sunlightLevel = sunlightData[cMesh.Direction - 1] / maxLightLevel;
                                             let volumetricLightLevel = cMesh.VolumetricLightLevel / maxLightLevel;
                                             
-                                            let displayLightLevel;
-                                            let displayLightColor;
-                                            if (sunlightLevel >= volumetricLightLevel){
-                                                displayLightLevel = sunlightLevel;
-                                                displayLightColor = sunLight.Color;
-                                            }
-                                            else{
-                                                displayLightLevel = volumetricLightLevel;
-                                                displayLightColor = torchOrange;
-                                            }
+                                            let sunlightColor = sunLight.Color.scale(sunlightLevel);
+                                            let volumetricLightColor = torchOrange.scale(volumetricLightLevel);
+                                            //let displayLightLevel = Math.max(sunlightLevel, volumetricLightLevel);
+                                            // Change 'torchOrange' to the current mesh's light color
+                                            let displayLightColor = sunlightColor.combine(volumetricLightColor);
 
-                                            outputColor.r += displayLightLevel * faceColor.r * displayLightColor.r / 255;
-                                            outputColor.g += displayLightLevel * faceColor.g * displayLightColor.g / 255;
-                                            outputColor.b += displayLightLevel * faceColor.b * displayLightColor.b / 255;
+                                            outputColor.r += faceColor.r * displayLightColor.r / 255;
+                                            outputColor.g += faceColor.g * displayLightColor.g / 255;
+                                            outputColor.b += faceColor.b * displayLightColor.b / 255;
                                         }
 
                                         break;

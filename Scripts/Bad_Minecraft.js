@@ -41,7 +41,7 @@ var visibleFaces = {};
 
 var volumetricLightData = {};
 var sunlightFaceData = {};
-var maxLightLevel = 15;
+var maxLightLevel = 18;
 var lightStepLength = 1;
 var maxLightSteps = 40;
 var lightUpdatesPerFrame = Math.pow(2 * renderDistance + 1, 2);
@@ -122,7 +122,7 @@ var biomeID = [
     ];
 
 var biomeList = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
-//var biomeList = [11, 3];
+//var biomeList = [8, 8, 12, 9];
 
 var blockInHand = 1;
 var interactionDist = 7;
@@ -164,7 +164,6 @@ function setup() {
     document.getElementById("blockInHandStat").innerHTML = "Block in Hand: " + blockInHand;
 
     CalculateVolumeLightSources(new BABYLON.Vector3(0, 0, 0), new BABYLON.Vector3(worldWidth-1, worldHeight-1, worldWidth-1));
-    //console.log(volumetricLightData);
 }
 
 function loop() {
@@ -1324,7 +1323,16 @@ function CalculateVolumeLightSources(minCoords, maxCoords){
     iterations = 0;
     while (lightQueue.length > 0 && iterations < 2){
         let thisNode = lightQueue.pop();
-        let newLightValue = thisNode.lightValue - 1;
+
+        let currID = GetBlockData(thisNode.position.x, thisNode.position.y, thisNode.position.z);
+        let newLightValue;
+        if (liquidID.includes(currID)){
+            newLightValue = thisNode.lightValue - 2;
+        }
+        else{
+            newLightValue = thisNode.lightValue - 1;
+        }
+        
 
         if (newLightValue > 0){
 
@@ -1335,7 +1343,7 @@ function CalculateVolumeLightSources(minCoords, maxCoords){
                 if (adjacentPos.isWithinBounds(new BABYLON.Vector3(0, 0, 0), new BABYLON.Vector3(worldWidth-1, worldHeight-1, worldWidth-1))){
                     let adjacentID = GetBlockData(adjacentPos.x, adjacentPos.y, adjacentPos.z);
     
-                    if (adjacentID === 0){
+                    if (adjacentID === 0 || liquidID.includes(adjacentID)){
                         let key = Create3DCoordsKey(adjacentPos.x, adjacentPos.y, adjacentPos.z);
                         let adjacentLightValue = volumetricLightData[key];
         
