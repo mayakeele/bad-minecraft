@@ -168,20 +168,23 @@ function setup() {
 
 function loop() {
 
-    prevChunk = currChunk;
-    firstPersonMovement();
-
     // Reset player position if they press R or they fall below y = 0
     if (rDown === true || cam.Position.y < 0) {
         setupCamera(cam, camInitPos, camInitRot);
 	    playerVel = new BABYLON.Vector3(0, 0, 0);
     }
+
+
+    currBlock = new BABYLON.Vector3(Math.round(cam.Position.x), Math.round(cam.Position.y), Math.round(cam.Position.z));
+
+    prevChunk = currChunk;
+    firstPersonMovement();
     
     // Determine which chunk the player is in and reload chunks if they move to a new chunk
     currChunk = new BABYLON.Vector3(Math.round(cam.Position.x / chunkWidth), Math.round(cam.Position.y / chunkHeight), Math.round(cam.Position.z / chunkWidth));
     if (!(currChunk.equals(prevChunk))) {
         ClearChunks();
-        LoadChunks(currChunk, renderDistance);
+        LoadChunks(currChunk, renderDistance);   
     }
 
     // Update lighting for a set number of chunks each frame
@@ -235,8 +238,7 @@ function loop() {
     }
 
     sunLight.Intensity = newSunBrightness;
-    
-    currBlock = new BABYLON.Vector3(Math.round(cam.Position.x), Math.round(cam.Position.y), Math.round(cam.Position.z));
+
 
     collisionData = GetBlockData(currBlock.x, currBlock.y, currBlock.z);
     UpdateColorMask();
@@ -256,7 +258,16 @@ function loop() {
                 
                 let blockID = GetBlockData(targetX, targetY, targetZ);
 				if (blockID !== 0 && !liquidID.includes(blockID)) {
-					RemoveBlock(targetX, targetY, targetZ);
+                    SetBlockData(targetX, targetY, targetZ, 0);
+                    
+                    let minCoords = new BABYLON.Vector3(targetX - (maxLightLevel - 1), targetY - (maxLightLevel - 1), targetZ - (maxLightLevel - 1));
+                    let maxCoords = new BABYLON.Vector3(targetX + (maxLightLevel - 1), targetY + (maxLightLevel - 1), targetZ + (maxLightLevel - 1));
+                    ClearVolumeLightSources(minCoords, maxCoords);
+                    CalculateVolumeLightSources(minCoords, maxCoords);
+
+                    ClearChunks();
+                    LoadChunks(currChunk, renderDistance);
+
 					break;
 				}
 			}    
@@ -291,8 +302,16 @@ function loop() {
                     blockID = GetBlockData(targetX, targetY, targetZ);
                     if (blockID === 0 || liquidID.includes(blockID)){
                         if ( !(hDist < playerRadius + 0.707 && (vDist > -playerHeight - 0.5 && vDist < 0.5)) ) {
-                            PlaceBlock(targetX, targetY, targetZ, blockInHand);
-    
+                            SetBlockData(targetX, targetY, targetZ, blockInHand);
+                            
+                            let minCoords = new BABYLON.Vector3(targetX - (maxLightLevel - 1), targetY - (maxLightLevel - 1), targetZ - (maxLightLevel - 1));
+                            let maxCoords = new BABYLON.Vector3(targetX + (maxLightLevel - 1), targetY + (maxLightLevel - 1), targetZ + (maxLightLevel - 1));
+                            ClearVolumeLightSources(minCoords, maxCoords);
+                            CalculateVolumeLightSources(minCoords, maxCoords);
+
+                            ClearChunks();
+                            LoadChunks(currChunk, renderDistance);
+
                             let key = Create3DCoordsKey(targetX, targetY, targetZ);
                             let lightData = CalculateBlockSunlight(targetX, targetY, targetZ, visibleFaces[key]);
                             SetBlockLightData(targetX, targetY, targetZ, lightData);
@@ -1296,9 +1315,6 @@ function Create3DCoordsKey(x, y, z){
     return key;
 }
 
-function CalculateLightSource(lightNode){
-    
-}
 
 function CalculateVolumeLightSources(minCoords, maxCoords){
     // Calculates light values for all transparent blocks affected by light source blocks in a given 3D volume
@@ -1320,8 +1336,7 @@ function CalculateVolumeLightSources(minCoords, maxCoords){
         }
     }
 
-    iterations = 0;
-    while (lightQueue.length > 0 && iterations < 2){
+    while (lightQueue.length > 0){
         let thisNode = lightQueue.pop();
 
         let currID = GetBlockData(thisNode.position.x, thisNode.position.y, thisNode.position.z);
@@ -1361,6 +1376,57 @@ function CalculateVolumeLightSources(minCoords, maxCoords){
         }
         
         
+    }
+}
+
+function ClearVolumeLightSources(minCoords, maxCoords){
+    // Removes source light data for all blocks in a given volume
+    minCoords = minCoords.clamp(new BABYLON.Vector3(0, 0, 0), new BABYLON.Vector3(worldWidth-1, worldHeight-1, worldWidth-1));
+    maxCoords = maxCoords.clamp(new BABYLON.Vector3(0, 0, 0), new BABYLON.Vector3(worldWidth-1, worldHeight-1, worldWidth-1));
+
+    let lightQueue = [];
+
+    for (let x = minCoords.x; x <= maxCoords.x; x++){
+        for (let y = minCoords.y; y <= maxCoords.y; y++){
+            for (let z = minCoords.z; z <= maxCoords.z; z++){
+                let blockID = GetBlockData(x, y, z);
+
+                if (lightSourceID.includes(blockID)){
+                    lightQueue.push(new BABYLON.LightNode(new BABYLON.Vector3(x, y, z), maxLightLevel));
+                }
+            }
+        }
+    }
+
+    while (lightQueue.length > 0){
+        let thisNode = lightQueue.pop();
+
+        let currID = GetBlockData(thisNode.position.x, thisNode.position.y, thisNode.position.z);
+        let currLightValue = thisNode.lightValue;
+        let currKey = Create3DCoordsKey(thisNode.position.x, thisNode.position.y, thisNode.position.z);
+        
+        for (let s = 0; s < 6; s++){
+            let direction = FaceNumberToNormal(s);
+            let adjacentPos = thisNode.position.add(direction);
+
+            if (adjacentPos.isWithinBounds(new BABYLON.Vector3(0, 0, 0), new BABYLON.Vector3(worldWidth-1, worldHeight-1, worldWidth-1))){
+                let adjacentID = GetBlockData(adjacentPos.x, adjacentPos.y, adjacentPos.z);
+
+                if (adjacentID === 0 || liquidID.includes(adjacentID)){
+                    let adjKey = Create3DCoordsKey(adjacentPos.x, adjacentPos.y, adjacentPos.z);
+                    let adjacentLightValue = volumetricLightData[adjKey];
+    
+                    if (adjacentLightValue > 0 && adjacentLightValue < currLightValue){                      
+                        lightQueue.unshift(new BABYLON.LightNode(adjacentPos, adjacentLightValue));
+                        volumetricLightData[currKey] = 0;
+                    }
+                }
+            }
+
+            else{
+                continue;
+            }
+        }      
     }
 }
 

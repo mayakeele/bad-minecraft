@@ -482,7 +482,7 @@
                                             let volumetricLightLevel = cMesh.VolumetricLightLevel / maxLightLevel;
                                             
                                             let sunlightColor = sunLight.Color.scale(sunlightLevel);
-                                            let volumetricLightColor = torchOrange.scale(volumetricLightLevel);
+                                            let volumetricLightColor = lavaRed.scale(volumetricLightLevel);
                                             //let displayLightLevel = Math.max(sunlightLevel, volumetricLightLevel);
                                             // Change 'torchOrange' to the current mesh's light color
                                             let displayLightColor = sunlightColor.combine(volumetricLightColor);
