@@ -56,12 +56,14 @@ var woodBrown = new BABYLON.Color3(74, 50, 17);
 var leafGreen = new BABYLON.Color3(61, 140, 21);
 var cactusGreen = new BABYLON.Color3(124, 168, 0);
 var lavaRed = new BABYLON.Color3(255, 82, 35);
-var rockRed = new BABYLON.Color3(203, 109, 49);
+var clayRed = new BABYLON.Color3(203, 109, 49);
 var cobblestoneGrey = new BABYLON.Color3(98, 94, 90);
 var snowWhite = new BABYLON.Color3(250, 250, 250);
 var waterTurquoise = new BABYLON.Color3(68, 151, 128);
 var cloudGrey = new BABYLON.Color3(211, 220, 236);
-var torchOrange = new BABYLON.Color3(255, 180, 56);
+var campfireOrange = new BABYLON.Color3(255, 180, 56);
+var soulfireBlue = new BABYLON.Color3(99, 199, 209);
+var lightbulbYellow = new BABYLON.Color3(255, 254, 211);
 
 
 

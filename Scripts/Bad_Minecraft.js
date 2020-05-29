@@ -41,7 +41,7 @@ var visibleFaces = {};
 
 var volumetricLightData = {};
 var sunlightFaceData = {};
-var maxLightLevel = 12;
+var maxLightLevel = 10;
 var lightStepLength = 1;
 var maxLightSteps = 40;
 var lightUpdatesPerFrame = Math.pow(2 * renderDistance + 1, 2);
@@ -61,12 +61,14 @@ var colorID = [null,
     leafGreen,
     cactusGreen,
     lavaRed,
-    rockRed,
+    clayRed,
     cobblestoneGrey,
     snowWhite,
     waterTurquoise,
     cloudGrey,
-    torchOrange
+    campfireOrange,
+    soulfireBlue,
+    lightbulbYellow
 ];
 
 var blockTransparency = [null,
@@ -75,21 +77,23 @@ var blockTransparency = [null,
     0.2,
     0.8,
     0.2,
-    0.2,
+    0,
     0.5,
-    0.4,
+    0,
     0,
     0,
     0,
     0.2,
     0.6,
     0.7,
-    0
+    0.5,
+    0.5,
+    0.5
 ];
 
 var liquidID = [4, 9, 13];
 
-var lightSourceID = [9, 15];
+var lightSourceID = [9, 15, 16, 17];
 
 var maskColor = new BABYLON.Color3(0, 0, 0);
 
@@ -122,7 +126,7 @@ var biomeID = [
     ];
 
 var biomeList = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
-//var biomeList = [8, 8, 12, 9];
+//var biomeList = [8, 8, 3];
 
 var blockInHand = 1;
 var interactionDist = 7;
@@ -219,7 +223,7 @@ function loop() {
     else if (sunAngle >= Math.PI / 8 && sunAngle < Math.PI * 7/8){
         newSunBrightness = sunDefaultBrightness;
         sunLight.Color = sunny;
-        skyBoxColor = skyBlue
+        skyBoxColor = skyBlue;
     }
     // Sunset
     else if (sunAngle >= Math.PI * 7/8 && sunAngle < Math.PI){
@@ -1116,11 +1120,13 @@ function CalculateVolumeLightSources(minCoords, maxCoords){
                 }
 
                 let key = Create3DCoordsKey(x, y, z);
-                let lightValue = volumetricLightData[key];
-                if (lightValue === undefined) { lightValue = 0; }
-
-                if (lightValue > 1){
-                    //lightQueue.push(new BABYLON.LightNode(new BABYLON.Vector3(x, y, z), lightValue));
+                let lightData = volumetricLightData[key];
+                if (lightData === undefined) { lightData = [0, 0, 0, 0]; }
+         
+                let level = lightData[3];
+                if (level > 1){
+                    let color = new BABYLON.Color3(lightData[0], lightData[1], lightData[2]);
+                    lightQueue.push(new BABYLON.LightNode(new BABYLON.Vector3(x, y, z), level, color));
                 }
             }
         }

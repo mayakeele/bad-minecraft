@@ -21,34 +21,34 @@ window.addEventListener("keydown", function (event) {
     }
 
     switch (event.key) {
-        case " ":
+        case ' ':
             spaceDown = true;
             break;
-        case "w":
+        case 'w':
             wDown = true;
             break;
-        case "a":
+        case 'a':
             aDown = true;
             break;
-        case "s":
+        case 's':
             sDown = true;
             break;
-        case "d":
+        case 'd':
             dDown = true;
             break;
-        case "q":
+        case 'q':
             qDown = true;
             break;
-        case "e":
+        case 'e':
             eDown = true;
             break;
-        case "r":
+        case 'r':
             rDown = true;
             break;
-		case ",":
+		case ',':
             CycleSelectedBlock(-1);
             break;
-		case ".":
+		case '.':
             CycleSelectedBlock(1);
             break;
 
@@ -70,28 +70,28 @@ window.addEventListener("keyup", function (event) {
 
 
     switch (event.key) {
-        case " ":
+        case ' ':
             spaceDown = false;
             break;
-        case "w":
+        case 'w':
             wDown = false;
             break;
-        case "a":
+        case 'a':
             aDown = false;
             break;
-        case "s":
+        case 's':
             sDown = false;
             break;
-        case "d":
+        case 'd':
             dDown = false;
             break;
-        case "q":
+        case 'q':
             qDown = false;
             break;
-        case "e":
+        case 'e':
             eDown = false;
             break;
-        case "r":
+        case 'r':
             rDown = false;
             break;
 
