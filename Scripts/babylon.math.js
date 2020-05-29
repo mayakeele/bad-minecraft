@@ -53,9 +53,10 @@ var BABYLON;
     BABYLON.Color3 = Color3;
 
     var LightNode = (function () {
-        function LightNode(position, lightValue) {
+        function LightNode(position, lightValue, lightColor) {
             this.position = position.round();
             this.lightValue = Math.round(lightValue);
+            this.lightColor = lightColor;
         }
 
         return LightNode;

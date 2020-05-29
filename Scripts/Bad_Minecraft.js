@@ -1095,6 +1095,101 @@ function CalculateChunkSunlight(chunkCoords){
 }
 
 
+function CalculateVolumeLightSources(minCoords, maxCoords){
+    // Calculates light values for all transparent blocks affected by light source blocks in a given 3D volume
+    // Nodes are used to store the light data at a point, and are put in a queue to be processed (added to the queue at index 0, taken out of queue at end of array)
+    minCoords = minCoords.clamp(new BABYLON.Vector3(0, 0, 0), new BABYLON.Vector3(worldWidth-1, worldHeight-1, worldWidth-1));
+    maxCoords = maxCoords.clamp(new BABYLON.Vector3(0, 0, 0), new BABYLON.Vector3(worldWidth-1, worldHeight-1, worldWidth-1));
+
+    let lightQueue = [];
+
+    for (let x = minCoords.x; x <= maxCoords.x; x++){
+        for (let y = minCoords.y; y <= maxCoords.y; y++){
+            for (let z = minCoords.z; z <= maxCoords.z; z++){
+                let blockID = GetBlockData(x, y, z);
+
+                if (lightSourceID.includes(blockID)){
+                    let color = colorID[blockID];
+                    let level = maxLightLevel;
+                    lightQueue.push(new BABYLON.LightNode(new BABYLON.Vector3(x, y, z), level, color));
+                    continue;
+                }
+
+                let key = Create3DCoordsKey(x, y, z);
+                let lightValue = volumetricLightData[key];
+                if (lightValue === undefined) { lightValue = 0; }
+
+                if (lightValue > 1){
+                    //lightQueue.push(new BABYLON.LightNode(new BABYLON.Vector3(x, y, z), lightValue));
+                }
+            }
+        }
+    }
+
+    while (lightQueue.length > 0){
+        let thisNode = lightQueue.pop();
+
+        let currID = GetBlockData(thisNode.position.x, thisNode.position.y, thisNode.position.z);
+        let newLightValue;
+        if (liquidID.includes(currID)){
+            newLightValue = thisNode.lightValue - 2;
+        }
+        else{
+            newLightValue = thisNode.lightValue - 1;
+        }   
+
+        if (newLightValue > 0){
+
+            for (let s = 0; s < 6; s++){
+                let direction = FaceNumberToNormal(s);
+                let adjacentPos = thisNode.position.add(direction);
+
+                if (adjacentPos.isWithinBounds(new BABYLON.Vector3(0, 0, 0), new BABYLON.Vector3(worldWidth-1, worldHeight-1, worldWidth-1))){
+                    let adjacentID = GetBlockData(adjacentPos.x, adjacentPos.y, adjacentPos.z);
+    
+                    if (adjacentID === 0 || liquidID.includes(adjacentID)){
+                        let key = Create3DCoordsKey(adjacentPos.x, adjacentPos.y, adjacentPos.z);
+                        let adjacentLightData = volumetricLightData[key];
+                        if (adjacentLightData === undefined) { adjacentLightData = [0, 0, 0, 0]; }
+        
+                        if (adjacentLightData[3] < newLightValue){
+                            // Volumetric light data array stores 4 values: [r, g, b, light level]
+                            volumetricLightData[key] = [thisNode.lightColor.r, thisNode.lightColor.g, thisNode.lightColor.b, newLightValue];
+                            lightQueue.unshift(new BABYLON.LightNode(adjacentPos, newLightValue, thisNode.lightColor));
+                        }
+                    }
+                }
+
+                else{
+                    continue;
+                }
+            }
+        }
+        
+        
+    }
+}
+
+function ClearVolumeLightSources(minCoords, maxCoords){
+    // Removes source light data for all blocks in a given volume
+    minCoords = minCoords.clamp(new BABYLON.Vector3(0, 0, 0), new BABYLON.Vector3(worldWidth-1, worldHeight-1, worldWidth-1));
+    maxCoords = maxCoords.clamp(new BABYLON.Vector3(0, 0, 0), new BABYLON.Vector3(worldWidth-1, worldHeight-1, worldWidth-1));
+
+    for (let x = minCoords.x; x <= maxCoords.x; x++){
+        for (let y = minCoords.y; y <= maxCoords.y; y++){
+            for (let z = minCoords.z; z <= maxCoords.z; z++){
+
+                let key = Create3DCoordsKey(x, y, z);
+                volumetricLightData[key] = [0, 0, 0, 0];
+                //if (volumetricLightData.hasOwnProperty(key)){
+                    //delete volumetricLightData.key;
+                //}
+            }
+        }
+    }
+}
+
+
 function Unflatten3DGrid(index, width){
     // Converts a single index into a 3D integer coordinate trio, given the dimensions of a square grid to pick from
     // Coordinates are mapped in the order (x, z, y), but a standard xyz vector is returned
@@ -1143,10 +1238,21 @@ function CreateFaceMeshes(x, y, z) {
                 thisFace.Position = currPos;
                 thisFace.Direction = s + 1;
 
+                let lightValue;
+                let lightColor;
                 let key = Create3DCoordsKey(adjacentPos.x, adjacentPos.y, adjacentPos.z);
-                let lightValue = volumetricLightData[key];
-                if (lightValue === undefined) { lightValue = 0 }
+                let lightData = volumetricLightData[key]; 
+                if (lightData === undefined) {
+                    lightValue = 0;
+                    lightColor = black;
+                }
+                else{
+                    lightValue = lightData[3];
+                    lightColor = new BABYLON.Color3(lightData[0], lightData[1], lightData[2]);
+                }
+    
                 thisFace.VolumetricLightLevel = lightValue;
+                thisFace.VolumetricLightColor = lightColor;
 
                 faceVisibility[s] = true;
             }
@@ -1168,10 +1274,21 @@ function CreateFaceMeshes(x, y, z) {
                 thisFace.Position = currPos;
                 thisFace.Direction = s + 1;
 
+                let lightValue;
+                let lightColor;
                 let key = Create3DCoordsKey(adjacentPos.x, adjacentPos.y, adjacentPos.z);
-                let lightValue = volumetricLightData[key];
-                if (lightValue === undefined) { lightValue = 0 }
+                let lightData = volumetricLightData[key]; 
+                if (lightData === undefined) {
+                    lightValue = 0;
+                    lightColor = black;
+                }
+                else{
+                    lightValue = lightData[3];
+                    lightColor = new BABYLON.Color3(lightData[0], lightData[1], lightData[2]);
+                }
+    
                 thisFace.VolumetricLightLevel = lightValue;
+                thisFace.VolumetricLightColor = lightColor;
 
                 faceVisibility[s] = true;
             }
@@ -1319,98 +1436,6 @@ function SetBlockLightData(x, y, z, values){
 function Create3DCoordsKey(x, y, z){
     let key = x + "," + y + "," + z;
     return key;
-}
-
-
-function CalculateVolumeLightSources(minCoords, maxCoords){
-    // Calculates light values for all transparent blocks affected by light source blocks in a given 3D volume
-    // Nodes are used to store the light data at a point, and are put in a queue to be processed (added to the queue at index 0, taken out of queue at end of array)
-    minCoords = minCoords.clamp(new BABYLON.Vector3(0, 0, 0), new BABYLON.Vector3(worldWidth-1, worldHeight-1, worldWidth-1));
-    maxCoords = maxCoords.clamp(new BABYLON.Vector3(0, 0, 0), new BABYLON.Vector3(worldWidth-1, worldHeight-1, worldWidth-1));
-
-    let lightQueue = [];
-
-    for (let x = minCoords.x; x <= maxCoords.x; x++){
-        for (let y = minCoords.y; y <= maxCoords.y; y++){
-            for (let z = minCoords.z; z <= maxCoords.z; z++){
-                let blockID = GetBlockData(x, y, z);
-
-                if (lightSourceID.includes(blockID)){
-                    lightQueue.push(new BABYLON.LightNode(new BABYLON.Vector3(x, y, z), maxLightLevel));
-                    continue;
-                }
-
-                let key = Create3DCoordsKey(x, y, z);
-                let lightValue = volumetricLightData[key];
-                if (lightValue === undefined) { lightValue = 0; }
-
-                if (lightValue > 1){
-                    //lightQueue.push(new BABYLON.LightNode(new BABYLON.Vector3(x, y, z), lightValue));
-                }
-            }
-        }
-    }
-
-    while (lightQueue.length > 0){
-        let thisNode = lightQueue.pop();
-
-        let currID = GetBlockData(thisNode.position.x, thisNode.position.y, thisNode.position.z);
-        let newLightValue;
-        if (liquidID.includes(currID)){
-            newLightValue = thisNode.lightValue - 2;
-        }
-        else{
-            newLightValue = thisNode.lightValue - 1;
-        }
-        
-
-        if (newLightValue > 0){
-
-            for (let s = 0; s < 6; s++){
-                let direction = FaceNumberToNormal(s);
-                let adjacentPos = thisNode.position.add(direction);
-
-                if (adjacentPos.isWithinBounds(new BABYLON.Vector3(0, 0, 0), new BABYLON.Vector3(worldWidth-1, worldHeight-1, worldWidth-1))){
-                    let adjacentID = GetBlockData(adjacentPos.x, adjacentPos.y, adjacentPos.z);
-    
-                    if (adjacentID === 0 || liquidID.includes(adjacentID)){
-                        let key = Create3DCoordsKey(adjacentPos.x, adjacentPos.y, adjacentPos.z);
-                        let adjacentLightValue = volumetricLightData[key];
-        
-                        if (adjacentLightValue === undefined || adjacentLightValue < newLightValue){
-                            volumetricLightData[key] = newLightValue;
-                            lightQueue.unshift(new BABYLON.LightNode(adjacentPos, newLightValue));
-                        }
-                    }
-                }
-
-                else{
-                    continue;
-                }
-            }
-        }
-        
-        
-    }
-}
-
-function ClearVolumeLightSources(minCoords, maxCoords){
-    // Removes source light data for all blocks in a given volume
-    minCoords = minCoords.clamp(new BABYLON.Vector3(0, 0, 0), new BABYLON.Vector3(worldWidth-1, worldHeight-1, worldWidth-1));
-    maxCoords = maxCoords.clamp(new BABYLON.Vector3(0, 0, 0), new BABYLON.Vector3(worldWidth-1, worldHeight-1, worldWidth-1));
-
-    for (let x = minCoords.x; x <= maxCoords.x; x++){
-        for (let y = minCoords.y; y <= maxCoords.y; y++){
-            for (let z = minCoords.z; z <= maxCoords.z; z++){
-
-                let key = Create3DCoordsKey(x, y, z);
-                volumetricLightData[key] = 0;
-                //if (volumetricLightData.hasOwnProperty(key)){
-                    //delete volumetricLightData.key;
-                //}
-            }
-        }
-    }
 }
 
 

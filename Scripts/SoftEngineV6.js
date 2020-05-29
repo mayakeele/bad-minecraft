@@ -20,6 +20,7 @@
             this.Position = new BABYLON.Vector3(0, 0, 0);
             this.FaceColor = faceColor;
             this.VolumetricLightLevel = 0;
+            this.VolumetricLightColor;
             //this.WireColor = wireColor;
             //this.WireShader = wireShader;
             this.Direction = 0;
@@ -482,7 +483,7 @@
                                             let volumetricLightLevel = cMesh.VolumetricLightLevel / maxLightLevel;
                                             
                                             let sunlightColor = sunLight.Color.scale(sunlightLevel);
-                                            let volumetricLightColor = lavaRed.scale(volumetricLightLevel);
+                                            let volumetricLightColor = cMesh.VolumetricLightColor.scale(volumetricLightLevel);
                                             //let displayLightLevel = Math.max(sunlightLevel, volumetricLightLevel);
                                             // Change 'torchOrange' to the current mesh's light color
                                             let displayLightColor = sunlightColor.combine(volumetricLightColor);
