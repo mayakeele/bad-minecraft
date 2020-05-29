@@ -14,9 +14,9 @@ var currSunDirection = sunDefaultDirection;
 sunAxis.normalize();
 sunDefaultDirection.normalize();
 
-var sunDefaultBrightness = 0.75;
-var dayLength = 180;
-var sunSpeed = Math.PI / dayLength;
+const sunDefaultBrightness = 0.75;
+const dayLength = 180;
+const sunSpeed = Math.PI / dayLength;
 var sunAngle = 0;
 
 var sunLight = new SoftEngine.Light("Sun", LightType.Directional, sunny, sunDefaultBrightness);
@@ -28,8 +28,9 @@ lights.push(sunLight);
 
 var renderDistance = 4;
 var chunksPerEdge = 2 * renderDistance + 1;
-var chunkWidth = 8;
-var chunkHeight = 8;
+const chunkWidth = 8;
+const chunkHeight = 8;
+const seaLevel = 24;
 var currChunk;
 var prevChunk;
 var chunkUpdateIndex = 0;
@@ -51,7 +52,7 @@ var fogIntensity = 1.1;
 
 var skyBoxColor = skyBlue;
 
-var colorID = [null,
+const colorID = [null,
     stoneGray,
     topsoilBrown,
     brightGrassGreen,
@@ -68,10 +69,11 @@ var colorID = [null,
     cloudGrey,
     campfireOrange,
     soulfireBlue,
-    lightbulbYellow
+    lightbulbYellow,
+    lightFruitGreen,
 ];
 
-var blockTransparency = [null,
+const blockTransparency = [null,
     0,
     0,
     0.2,
@@ -88,16 +90,14 @@ var blockTransparency = [null,
     0.7,
     0.5,
     0.5,
-    0.5
+    0.5,
+    0
 ];
 
-var liquidID = [4, 9, 13];
-
-var lightSourceID = [9, 15, 16, 17];
+const liquidID = [4, 9, 13];
+const lightSourceID = [9, 15, 16, 17, 18];
 
 var maskColor = new BABYLON.Color3(0, 0, 0);
-
-var seaLevel = 24;
 
 var currBlock = new BABYLON.Vector3(0, 0, 0);
 var collisionData = 0;
@@ -136,14 +136,13 @@ var placeDelay = 0.1;
 var timeSinceBreak = 0;
 var timeSincePlace = 0;
 
-
 var playerHeight = 2.5;
 var playerRadius = 0.48;
 var playerSpeed = 8;
 var jumpSpeed = 5;
 
 var cameraSensitivity = 0.004;
-var cameraFOV = 120 * Math.PI / 180;
+var cameraFOV = 125 * Math.PI / 180;
 
 var gravityAccel = 12;
 var terminalVelocity = -30;
@@ -1606,6 +1605,7 @@ function FaceNumberToNormal(faceNumber){
 function SetRenderDistance(dist){
     renderDistance = dist;
     chunksPerEdge = 2 * dist + 1;
+    lightUpdatesPerFrame = Math.pow(2 * renderDistance + 1, 2);
     ClearChunks();
     LoadChunks(currChunk, dist);
 }
