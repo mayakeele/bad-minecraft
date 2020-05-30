@@ -62,7 +62,7 @@ const cloudGrey = new BABYLON.Color3(211, 220, 236);
 const campfireOrange = new BABYLON.Color3(255, 180, 56);
 const soulfireBlue = new BABYLON.Color3(99, 199, 209);
 const lightbulbYellow = new BABYLON.Color3(255, 254, 211);
-const lightFruitGreen =  new BABYLON.Color3(138, 203, 59);
+const lightFruitGreen =  new BABYLON.Color3(90, 171, 26);
 
 
 

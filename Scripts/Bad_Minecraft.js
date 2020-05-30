@@ -623,7 +623,7 @@ function GenerateWorld() {
                 let currHeight = heightMap[x][z];
                 let currBlock = 0;
 
-                while (currBlock === 0 || currBlock === 4) {
+                while (currBlock === 0 || liquidID.includes(currBlock)) {
                     currHeight -= 1;
                     currBlock = GetBlockData(x, currHeight, z);        
                     if (currHeight < 1) {
@@ -665,12 +665,13 @@ function GenerateWorld() {
                             PlaceGroundCover(x, topLayer + 1, z, 7);
                         }
                         if (RandomChance(0.014)) {
-                            let height = Math.round(Math.random() * 5 + 5);
-                            GrowTreeBox(x, topLayer + 1, z, height, 0.9);
+                            let height = RandomInt(3, 9);
+                            let width = RandomInt(1, 3);
+                            PlaceTreeBox(x, topLayer + 1, z, height, width, 1, 0.9, 7, 0.003, 18);
                         }
                         if (RandomChance(0.01)) {
-                            let height = Math.round(Math.random() * 7 + 7);
-                            GrowTreeBall(x, topLayer + 1, z, height, Math.sqrt(height) * 1.3 + 1, 0.9);
+                            let height = RandomInt(7, 14);
+                            PlaceTreeBall(x, topLayer + 1, z, height, Math.sqrt(height) * 1.3 + 1, 0.9, 7, 0.003, 18);
                         }
                         break;
                     // Mountains
@@ -697,7 +698,7 @@ function GenerateWorld() {
                         }
                         if (RandomChance(0.002)) {
                             let height = Math.round(Math.random() * 3 + 4);
-                            GrowTreeBall(x, topLayer + 1, z, height, Math.sqrt(height));
+                            PlaceTreeBall(x, topLayer + 1, z, height, Math.sqrt(height), 1, 7, 0);
                         }
 
                         break;
@@ -725,12 +726,14 @@ function GenerateWorld() {
                         }
 
                         if (RandomChance(0.02)) {
-                            let height = Math.round(Math.random() * 6 + 6);
-                            GrowTreeBox(x, topLayer + 1, z, height, 0.5);
+                            let height = RandomInt(6, 12);
+                            let width = RandomInt(1, 5);
+                            let leafHeight = RandomInt(1, 3);
+                            PlaceTreeBox(x, topLayer + 1, z, height, width, leafHeight, 0.5, 7, 0.002, 18);
                         }
                         if (RandomChance(0.02)) {
-                            let height = Math.round(Math.random() * 4 + 4);
-                            GrowTreePine(x, topLayer + 1, z, height, height / 4, height / 4, 0.9);
+                            let height = RandomInt(3, 7);
+                            PlaceTreeCone(x, topLayer + 1, z, height, height / 4, height / 4, 0.9, 7, 0.01, 18);
                         }
                         break;
                     // Badlands
@@ -741,7 +744,7 @@ function GenerateWorld() {
                         if (RandomChance(0.15)) {
                             PlaceGroundCover(x, topLayer, z, 0);
                         }
-                        if (RandomChance(0.006)) {
+                        if (RandomChance(0.008)) {
                             let height = Math.round(Math.random() * 4 + 1);
                             PlaceTrunk(x, topLayer + 1, z, height, 8);
                         }
@@ -767,12 +770,14 @@ function GenerateWorld() {
                             PlaceGroundCover(x, topLayer + 1, z, 8);
                         }
                         if (RandomChance(0.04)) {
-                            let height = Math.round(Math.random() * 6 + 10);
-                            GrowTreeBox(x, topLayer + 1, z, height, 0.9);
+                            let height = Math.round(Math.random() * 6 + 7);
+                            let width = RandomInt(2, 5);
+                            let leafHeight = RandomInt(1, 4);
+                            PlaceTreeBox(x, topLayer + 1, z, height, width, leafHeight, 0.9, 7, 0.005, 18);
                         }
                         if (RandomChance(0.02)) {
-                            let height = Math.round(Math.random() * 10 + 6);
-                            GrowTreeBall(x, topLayer + 1, z, height, Math.sqrt(height) * 1.3 + 1, 0.8);
+                            let height = RandomInt(6, 16);
+                            PlaceTreeBall(x, topLayer + 1, z, height, Math.sqrt(height) * 1.3 + 1, 0.8, 7, 0.004, 18);
                         }
                         break;
 
@@ -792,7 +797,7 @@ function GenerateWorld() {
                             }
                             if (RandomChance(0.025)) {
                                 let height = Math.round(Math.random() * 7 + 5);
-                                GrowTreePine(x, topLayer + 1, z, height, height / 4, height / 4);
+                                PlaceTreeCone(x, topLayer + 1, z, height, height / 4, height / 4);
                             }
                         }
                         else if (topLayer <= 38) {
@@ -805,7 +810,7 @@ function GenerateWorld() {
                             }
                             if (RandomChance(0.015)) {
                                 let height = Math.round(Math.random() * 6 + 4);
-                                GrowTreePine(x, topLayer + 1, z, height, height / 5, height / 4);
+                                PlaceTreeCone(x, topLayer + 1, z, height, height / 5, height / 4);
                             }
                         }           
                         else {
@@ -830,7 +835,7 @@ function GenerateWorld() {
 
                         if (RandomChance(0.012)) {
                             let height = Math.round(Math.random() * 6 + 5);
-                            GrowTreePine(x, topLayer + 1, z, height, 1.7 * height, height - 1, 0.7);
+                            PlaceTreeCone(x, topLayer + 1, z, height, 1.7 * height, height - 1, 0.7, 8, 0.03, 2);
                         }
                         break;
                 }
@@ -1553,6 +1558,11 @@ function RandomBool() {
     else {
         return false;
     }
+}
+
+function RandomInt(inclusiveMin, inclusiveMax) {
+    let difference = inclusiveMax - inclusiveMin;
+    return Math.trunc(Math.random() * (difference + 1)) + inclusiveMin;
 }
 
 function DegToRad(deg){

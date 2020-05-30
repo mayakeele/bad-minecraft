@@ -142,33 +142,36 @@ var BiomeIslands = {
 }; 
 
 
-// reefs, islands, highlands, tundra, Zhangjiajie (towering rocks), coniferous, dead land (ww1 no mans land), 
+// reefs, islands, highlands, tundra, Zhangjiajie (towering rocks), coniferous, dead land (corrupted), 
 // sky islands and cloud cities, mushroom forest, ice towers, hell, fjords
 
 
-function GrowTreeBox(baseX, baseY, baseZ, height, leafPercent = 1){
+function PlaceTreeBox(baseX, baseY, baseZ, trunkHeight, leafWidth, leafHeight, leafPercent = 1, leafBlock = 7, fruitPercent = 0, fruitBlock = 18){
         
     // Trunk
-    for(let y = baseY; y < baseY + height; y++){
+    for(let y = baseY; y < baseY + trunkHeight; y++){
         SetBlockData(baseX, y, baseZ, 6);
     }
     
     // Leaves
-    for(let x = baseX - 2; x <= baseX + 2; x++){
-        for(let y = baseY+height - 1; y <= baseY+height + 1 ; y++){
-            for (let z = baseZ - 2; z <= baseZ + 2; z++){
-                if (RandomChance(leafPercent)) {
-                    if (GetBlockData(x, y, z) === 0) {
-                        SetBlockData(x, y, z, 7);
+    for(let x = baseX - leafWidth; x <= baseX + leafWidth; x++){
+        for(let y = baseY + trunkHeight; y <= baseY + trunkHeight + leafHeight; y++){
+            for (let z = baseZ - leafWidth; z <= baseZ + leafWidth; z++){
+                if (GetBlockData(x, y, z) === 0) {
+                    if (RandomChance(leafPercent)) {
+                        SetBlockData(x, y, z, leafBlock);
                     }
-                }
+                    if (RandomChance(fruitPercent)) {
+                        SetBlockData(x, y, z, fruitBlock);
+                    }
+                }     
             }
         }
     }
 }
 
 
-function GrowTreePine(baseX, baseY, baseZ, height, radius, leafBase, leafPercent = 1) {
+function PlaceTreeCone(baseX, baseY, baseZ, height, radius, leafBase, leafPercent = 1, leafBlock = 7, fruitPercent = 0, fruitBlock = 18) {
 
     height = Math.round(height);
     radius = Math.round(radius);
@@ -189,22 +192,27 @@ function GrowTreePine(baseX, baseY, baseZ, height, radius, leafBase, leafPercent
             for (let z = baseZ - thisWidth; z <= baseZ + thisWidth; z++) {
 
                 // Only place blocks in a circular radius, and only a certain percent
-                if (RandomChance(leafPercent)) {
-                    let xDist = x - baseX;
-                    let zDist = z - baseZ;
-                    if (xDist * xDist + zDist * zDist <= thisWidth * thisWidth) {
-                        if (GetBlockData(x, y, z) === 0) {
-                            SetBlockData(x, y, z, 7);
+                let xDist = x - baseX;
+                let zDist = z - baseZ;
+                if (xDist * xDist + zDist * zDist <= thisWidth * thisWidth) {
+
+                    if (GetBlockData(x, y, z) === 0) {
+                        if (RandomChance(leafPercent)) {
+                            SetBlockData(x, y, z, leafBlock);
+                        }
+                        if (RandomChance(fruitPercent)) {
+                            SetBlockData(x, y, z, fruitBlock);
                         }
                     }
                 }
+                
             }
         }
     }    
 }
 
 
-function GrowTreeBall(baseX, baseY, baseZ, height, radius, leafPercent = 1) {
+function PlaceTreeBall(baseX, baseY, baseZ, height, radius, leafPercent = 1, leafBlock = 7, fruitPercent = 0, fruitBlock = 18) {
 
     height = Math.round(height);
     radius = Math.round(radius);
@@ -220,17 +228,22 @@ function GrowTreeBall(baseX, baseY, baseZ, height, radius, leafPercent = 1) {
             for (let z = baseZ - radius; z <= baseZ + radius; z++) {
 
                 // Only place leaves in a spherical radius, and only a certain percentage of them
-                if (RandomChance(leafPercent)) {
-                    let xDistSq = Math.pow(baseX - x, 2);
-                    let zDistSq = Math.pow(baseZ - z, 2);
-                    let yDistSq = Math.pow(baseY + height - y, 2);
+                let xDistSq = Math.pow(baseX - x, 2);
+                let zDistSq = Math.pow(baseZ - z, 2);
+                let yDistSq = Math.pow(baseY + height - y, 2);
 
-                    if (xDistSq + zDistSq + yDistSq <= radius * radius) {
-                        if (GetBlockData(x, y, z) === 0) {
-                            SetBlockData(x, y, z, 7);
+                if (xDistSq + zDistSq + yDistSq <= radius * radius) {
+
+                    if (GetBlockData(x, y, z) === 0) {
+                        if (RandomChance(leafPercent)) {
+                            SetBlockData(x, y, z, leafBlock);
+                        }
+                        if (RandomChance(fruitPercent)) {
+                            SetBlockData(x, y, z, fruitBlock);
                         }
                     }
-                }             
+                }
+                             
             }
         }
     }
@@ -243,7 +256,6 @@ function PlaceGroundCover(baseX, baseY, baseZ, blockID) {
 }
 
 function PlaceTrunk(baseX, baseY, baseZ, height, blockID) {    
-    // Stem
     for (let y = baseY; y < baseY + height; y++) {
         SetBlockData(baseX, y, baseZ, blockID);
     }
@@ -268,7 +280,13 @@ function GenerateCaves(threshold, compression, heightMap) {
                     ];
 
                     // Ignore this block if it touches water or lava
-                    if (!surroundingBlocks.includes(4) && !surroundingBlocks.includes(9)) {
+                    let liquidAdjacent = false;
+                    for (let i = 0; i < surroundingBlocks.length; i++){
+                        if (liquidID.includes(surroundingBlocks[i])){
+                            liquidAdjacent = true;
+                        }
+                    }
+                    if (!liquidAdjacent) {
                         let noiseValue = noise.simplex3(x * compression / 100, y * compression / 100, z * compression / 100);
 
                         if (noiseValue > threshold) {
