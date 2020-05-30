@@ -1,6 +1,6 @@
 # Bad Minecraft
-A voxel game (definitely not a bad clone of Minecraft) that runs in a browser on a CPU-based JS custom rendering engine.
-Thanks to David Rousset, who provided a tutorial and framework to build this rendering engine.
+A Minecraft-like exploration game that runs in a browser on a CPU-based JS custom rendering engine.
+Thanks to David Rousset, who provided a great tutorial and framework to build this rendering engine.
 https://www.davrous.com/2013/06/13/tutorial-series-learning-how-to-write-a-3d-soft-engine-from-scratch-in-c-typescript-or-javascript/
 
 ~ Developed by Grant Keele ~
