@@ -12,15 +12,17 @@
     SoftEngine.Camera = Camera;
 
     var Mesh = (function () {
-        function Mesh(name, verticesCount, facesCount, faceColor, wireColor, wireShader) {
+        function Mesh(name, verticesCount, facesCount, faceColor) {
             this.name = name;
             this.Vertices = new Array(verticesCount);
             this.Faces = new Array(facesCount);
             this.Rotation = new BABYLON.Vector3(0, 0, 0);
             this.Position = new BABYLON.Vector3(0, 0, 0);
             this.FaceColor = faceColor;
-            this.WireColor = wireColor;
-            this.WireShader = wireShader;
+            this.VolumetricLightLevel = 0;
+            this.VolumetricLightColor;
+            //this.WireColor = wireColor;
+            //this.WireShader = wireShader;
             this.Direction = 0;
             // 0: default, no direction
             // 1: xP
@@ -475,12 +477,20 @@
                                     case LightingMode.Voxel:
                                         if (cMesh.Direction !== 0){
                                             let blockPos = cMesh.Position.round();
-                                            let lightData = GetBlockLightData(blockPos.x, blockPos.y, blockPos.z);
-                                            let lightLevel = lightData[cMesh.Direction - 1] / maxLightLevel;
+                                            let sunlightData = GetBlockLightData(blockPos.x, blockPos.y, blockPos.z);
+        
+                                            let sunlightLevel = sunlightData[cMesh.Direction - 1] / maxLightLevel;
+                                            let volumetricLightLevel = cMesh.VolumetricLightLevel / maxLightLevel;
+                                            
+                                            let sunlightColor = sunLight.Color.scale(sunlightLevel);
+                                            let volumetricLightColor = cMesh.VolumetricLightColor.scale(volumetricLightLevel);
+                                            //let displayLightLevel = Math.max(sunlightLevel, volumetricLightLevel);
+                                            // Change 'torchOrange' to the current mesh's light color
+                                            let displayLightColor = sunlightColor.combine(volumetricLightColor);
 
-                                            outputColor.r += lightLevel * faceColor.r * sunLight.Intensity * sunLight.Color.r / 255;
-                                            outputColor.g += lightLevel * faceColor.g * sunLight.Intensity * sunLight.Color.g / 255;
-                                            outputColor.b += lightLevel * faceColor.b * sunLight.Intensity * sunLight.Color.b / 255;
+                                            outputColor.r += faceColor.r * displayLightColor.r / 255;
+                                            outputColor.g += faceColor.g * displayLightColor.g / 255;
+                                            outputColor.b += faceColor.b * displayLightColor.b / 255;
                                         }
 
                                         break;

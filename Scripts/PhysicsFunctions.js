@@ -1,9 +1,4 @@
-﻿function clampValue(value, low, high) {
-    let clampedVal = Math.min(high, Math.max(low, value));
-    return clampedVal;
-}
-
-function applyGravity(g, deltaTime, terminalVel) {
+﻿function applyGravity(g, deltaTime, terminalVel) {
     // Adds an acceleration to the player, capping vertical velocity at a given speed
     // Since downwards velocity is negative, max is used to determine the 'least negative' one
     deltaTime = clampValue(deltaTime, 0, 0.15)

@@ -150,88 +150,127 @@ function newRect(name, xWidth, yWidth, zWidth, faceColor, wireColor = black, wir
 }
 
 
-function newFace(name, axis, sign, faceColor, wireColor = black){
+function newFace(name, directionNum, faceColor, wireColor = black){
     var thisFace;
     thisFace = new SoftEngine.Mesh(name, 4, 2, faceColor, wireColor, 0);
-    
+
+    let axis;
+    let sign;
+
+    switch (directionNum){
+        case 0:
+            axis = 'x';
+            sign = 1;
+        break;
+
+        case 1:
+            axis = 'x';
+            sign = -1;
+        break;
+
+        case 2:
+            axis = 'y';
+            sign = 1;
+        break;
+
+        case 3:
+            axis = 'y';
+            sign = -1;
+        break;
+
+        case 4:
+            axis = 'z';
+            sign = 1;
+        break;
+
+        case 5:
+            axis = 'z';
+            sign = -1;
+        break;
+        
+        default:
+            axis = 'x';
+            sign = 1;
+    }
+
     let offset = 0.5 * sign;
-  
+
     if(axis == 'x'){
-    thisFace.Vertices[0] = new BABYLON.Vector3(offset, offset, offset);
-    thisFace.Vertices[1] = new BABYLON.Vector3(offset, -offset, offset);
-    thisFace.Vertices[2] = new BABYLON.Vector3(offset, -offset, -offset);
-    thisFace.Vertices[3] = new BABYLON.Vector3(offset, offset, -offset);
+        thisFace.Vertices[0] = new BABYLON.Vector3(offset, offset, offset);
+        thisFace.Vertices[1] = new BABYLON.Vector3(offset, -offset, offset);
+        thisFace.Vertices[2] = new BABYLON.Vector3(offset, -offset, -offset);
+        thisFace.Vertices[3] = new BABYLON.Vector3(offset, offset, -offset);
 
-    thisFace.Faces[0] = {
-        A: 0,
-        B: 1,
-        C: 2,
+        thisFace.Faces[0] = {
+            A: 0,
+            B: 1,
+            C: 2,
 
-        NX: sign,
-        NY: 0,
-        NZ: 0
-    };
-    thisFace.Faces[1] = {
-        A: 0,
-        B: 3,
-        C: 2,
+            NX: sign,
+            NY: 0,
+            NZ: 0
+        };
+        thisFace.Faces[1] = {
+            A: 0,
+            B: 3,
+            C: 2,
 
-        NX: sign,
-        NY: 0,
-        NZ: 0
-    };
+            NX: sign,
+            NY: 0,
+            NZ: 0
+        };
     }
   
     else if(axis == 'y'){
-    thisFace.Vertices[0] = new BABYLON.Vector3(-offset, offset, offset);
-    thisFace.Vertices[1] = new BABYLON.Vector3(offset, offset, offset);
-    thisFace.Vertices[2] = new BABYLON.Vector3(offset, offset, -offset);
-    thisFace.Vertices[3] = new BABYLON.Vector3(-offset, offset, -offset);
+        thisFace.Vertices[0] = new BABYLON.Vector3(-offset, offset, offset);
+        thisFace.Vertices[1] = new BABYLON.Vector3(offset, offset, offset);
+        thisFace.Vertices[2] = new BABYLON.Vector3(offset, offset, -offset);
+        thisFace.Vertices[3] = new BABYLON.Vector3(-offset, offset, -offset);
 
-    thisFace.Faces[0] = {
-        A: 0,
-        B: 1,
-        C: 2,
+        thisFace.Faces[0] = {
+            A: 0,
+            B: 1,
+            C: 2,
 
-        NX: 0,
-        NY: sign,
-        NZ: 0
-    };
-    thisFace.Faces[1] = {
-        A: 0,
-        B: 3,
-        C: 2,
+            NX: 0,
+            NY: sign,
+            NZ: 0
+        };
+        thisFace.Faces[1] = {
+            A: 0,
+            B: 3,
+            C: 2,
 
-        NX: 0,
-        NY: sign,
-        NZ: 0
-    };
+            NX: 0,
+            NY: sign,
+            NZ: 0
+        };
     }
   
     else if(axis == 'z'){
-    thisFace.Vertices[0] = new BABYLON.Vector3(-offset, -offset, offset);
-    thisFace.Vertices[1] = new BABYLON.Vector3(offset, -offset, offset);
-    thisFace.Vertices[2] = new BABYLON.Vector3(offset, offset, offset);
-    thisFace.Vertices[3] = new BABYLON.Vector3(-offset, offset, offset);
+        thisFace.Vertices[0] = new BABYLON.Vector3(-offset, -offset, offset);
+        thisFace.Vertices[1] = new BABYLON.Vector3(offset, -offset, offset);
+        thisFace.Vertices[2] = new BABYLON.Vector3(offset, offset, offset);
+        thisFace.Vertices[3] = new BABYLON.Vector3(-offset, offset, offset);
 
-    thisFace.Faces[0] = {
-        A: 0,
-        B: 1,
-        C: 2,
+        thisFace.Faces[0] = {
+            A: 0,
+            B: 1,
+            C: 2,
 
-        NX: 0,
-        NY: 0,
-        NZ: sign
-    };
-    thisFace.Faces[1] = {
-        A: 0,
-        B: 3,
-        C: 2,
+            NX: 0,
+            NY: 0,
+            NZ: sign
+        };
+        thisFace.Faces[1] = {
+            A: 0,
+            B: 3,
+            C: 2,
 
-        NX: 0,
-        NY: 0,
-        NZ: sign
-    };
+            NX: 0,
+            NY: 0,
+            NZ: sign
+        };
     }
   
     meshes.push(thisFace);

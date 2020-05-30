@@ -19,8 +19,26 @@ var BABYLON;
             return new Color3(this.r - other.r, this.g - other.g, this.b - other.b);
         };
 
+        Color3.prototype.multiply = function(other){
+            return new Color3(this.r * other.r, this.g * other.g, this.b * other.b);
+        };
+
+        Color3.prototype.divide = function(other){
+            return new Color3(this.r / other.r, this.g / other.g, this.b / other.b);
+        };
+
         Color3.prototype.scale = function(scalar){
             return new Color3(this.r * scalar, this.g * scalar, this.b * scalar);
+        };
+
+        Color3.prototype.combine = function(other){
+            // Adds two colors together, mapping to a 0-255 scale if r g or b is greater than 255
+            let sum = this.add(other);
+
+            let maxChannel = Math.max(sum.r, sum.g, sum.b);
+            let scalar = maxChannel > 255  ?  255 / maxChannel  :  1;
+
+            return sum.scale(scalar);
         };
 
         Color3.Interpolate = function Interpolate(colorA, colorB, gradient) {
@@ -28,10 +46,23 @@ var BABYLON;
             return colorA.add(difference.scale(gradient));
         };
 
+        
+
         return Color3;
     })();
+    BABYLON.Color3 = Color3;
 
-    BABYLON.Color3 = Color3;    
+    var LightNode = (function () {
+        function LightNode(position, lightValue, lightColor) {
+            this.position = position.round();
+            this.lightValue = Math.round(lightValue);
+            this.lightColor = lightColor;
+        }
+
+        return LightNode;
+    })();
+    BABYLON.LightNode = LightNode;
+
     var Vector2 = (function () {
         function Vector2(initialX, initialY) {
             this.x = initialX;
@@ -155,6 +186,22 @@ var BABYLON;
             this.x *= num;
             this.y *= num;
             this.z *= num;
+        };
+        Vector3.prototype.clamp = function (minimum, maximum) {
+            let x = clampValue(this.x, minimum.x, maximum.x);
+            let y = clampValue(this.y, minimum.y, maximum.y);
+            let z = clampValue(this.z, minimum.z, maximum.z);
+            return new BABYLON.Vector3(x, y, z);
+        };
+        Vector3.prototype.isWithinBounds = function (minimum, maximum) {
+            if (this.x >= minimum.x && this.x <= maximum.x){
+                if (this.y >= minimum.y && this.y <= maximum.y){
+                    if (this.z >= minimum.z && this.z <= maximum.z){
+                        return true;
+                    }
+                }
+            }
+            return false;
         };
         Vector3.FromArray = function FromArray(array, offset) {
             if(!offset) {
