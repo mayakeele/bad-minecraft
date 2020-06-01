@@ -41,9 +41,29 @@ var BABYLON;
             return sum.scale(scalar);
         };
 
+        Color3.prototype.equals = function(other){
+            // Returns true is all three color channels are equal
+            if (this.r === other.r && this.g === other.g && this.b === other.b){
+                return true;
+            }
+            else{
+                return false;
+            }
+        };
+
         Color3.Interpolate = function Interpolate(colorA, colorB, gradient) {
             let difference = colorB.subtract(colorA);
             return colorA.add(difference.scale(gradient));
+        };
+
+        Color3.Average = function Average(...colors) {
+            let avg = black;
+            for (let i = 0; i < colors.length; i++){
+                avg = avg.add(colors[i]);
+            }
+            avg = avg.divide(colors.length).round();
+
+            return avg;
         };
 
         

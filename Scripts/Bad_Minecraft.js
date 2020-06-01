@@ -1137,6 +1137,7 @@ function CalculateVolumeLightSources(minCoords, maxCoords){
     }
 
     while (lightQueue.length > 0){
+        // Volumetric light data array stores 4 values: [r, g, b, light level]
         let thisNode = lightQueue.pop();
 
         let currID = GetBlockData(thisNode.position.x, thisNode.position.y, thisNode.position.z);
@@ -1161,12 +1162,29 @@ function CalculateVolumeLightSources(minCoords, maxCoords){
                         let key = Create3DCoordsKey(adjacentPos.x, adjacentPos.y, adjacentPos.z);
                         let adjacentLightData = volumetricLightData[key];
                         if (adjacentLightData === undefined) { adjacentLightData = [0, 0, 0, 0]; }
-        
-                        if (adjacentLightData[3] < newLightValue){
-                            // Volumetric light data array stores 4 values: [r, g, b, light level]
-                            volumetricLightData[key] = [thisNode.lightColor.r, thisNode.lightColor.g, thisNode.lightColor.b, newLightValue];
-                            lightQueue.unshift(new BABYLON.LightNode(adjacentPos, newLightValue, thisNode.lightColor));
+                        
+                        let adjacentLightColor = new BABYLON.Color3(adjacentLightData[0], adjacentLightData[1], adjacentLightData[2]);
+                        let adjacentLightLevel = adjacentLightData[3];
+
+                        if (adjacentLightColor.equals(black) || adjacentLightColor.equals(thisNode.lightColor)){
+                            // If the adjacent light color is the same as the current one, make a new node of the same color and light level -1
+                            if (adjacentLightLevel < newLightValue){
+                                volumetricLightData[key] = [thisNode.lightColor.r, thisNode.lightColor.g, thisNode.lightColor.b, newLightValue];
+                                lightQueue.unshift(new BABYLON.LightNode(adjacentPos, newLightValue, thisNode.lightColor));
+                            }
                         }
+                        else{ //if (adjacentLightColor.r < thisNode.lightColor.r && adjacentLightColor.g < thisNode.lightColor.g && adjacentLightColor.b < thisNode.lightColor.b){
+                            // If the adjacent color is different, set the new rgb channel to a weighted sum of the two colors
+                            let lightSum = thisNode.lightValue + adjacentLightLevel;
+                            let thisWeight = thisNode.lightValue / lightSum;
+                            let adjacentWeight = adjacentLightLevel / lightSum;
+
+                            let averageColor = thisNode.lightColor.scale(thisWeight).combine(adjacentLightColor.scale(adjacentWeight));
+                            let highestLightValue = Math.max(newLightValue, adjacentLightLevel);
+
+                            volumetricLightData[key] = [averageColor.r, averageColor.g, averageColor.b, highestLightValue];
+                            //lightQueue.unshift(new BABYLON.LightNode(adjacentPos, newLightValue, averageColor));
+                        }   
                     }
                 }
 
