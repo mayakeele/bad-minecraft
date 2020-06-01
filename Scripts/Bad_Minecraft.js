@@ -42,7 +42,7 @@ var visibleFaces = {};
 
 var volumetricLightData = {};
 var sunlightFaceData = {};
-var maxLightLevel = 16;
+var maxLightLevel = 12;
 var lightStepLength = 1;
 var maxLightSteps = 40;
 var lightUpdatesPerFrame = Math.pow(2 * renderDistance + 1, 2);
@@ -53,24 +53,25 @@ var fogIntensity = 1.1;
 var skyBoxColor = skyBlue;
 
 const colorID = [null,
-    stoneGray,
-    topsoilBrown,
-    brightGrassGreen,
-    waterBlue,
-    sandBeige,
-    woodBrown,
-    leafGreen,
-    cactusGreen,
-    lavaRed,
-    clayRed,
-    cobblestoneGrey,
-    snowWhite,
-    waterTurquoise,
-    cloudGrey,
-    campfireOrange,
-    soulfireBlue,
-    lightbulbYellow,
-    lightFruitGreen,
+    color_stone,
+    color_dirt,
+    color_grass,
+    color_blueWater,
+    color_sand,
+    color_wood,
+    color_leaves,
+    color_bush,
+    color_lava,
+    color_clay,
+    color_cobblestone,
+    color_snow,
+    color_turquoiseWater,
+    color_cloud,
+    color_fire,
+    color_soulfire,
+    color_lightbulb,
+    color_lightfruit,
+    color_seaLight
 ];
 
 const blockTransparency = [null,
@@ -91,18 +92,20 @@ const blockTransparency = [null,
     0.5,
     0.5,
     0.5,
-    0
+    0,
+    0.5
 ];
 
 const liquidID = [4, 9, 13];
 
-const lightSourceID = [9, 15, 16, 17, 18];
+const lightSourceID = [9, 15, 16, 17, 18, 19];
 const lightDecayRate = {
     9 : 1,
     15 : 1.2,
     16 : 1.2,
     17 : 0.8,
     18 : 2,
+    19 : 1.5
 }
 
 var maskColor = new BABYLON.Color3(0, 0, 0);
@@ -804,7 +807,7 @@ function GenerateWorld() {
                                 PlaceGroundCover(x, topLayer-1, z, 3);
                             }
                             if (RandomChance(0.025)) {
-                                let height = Math.round(Math.random() * 7 + 5);
+                                let height = RandomInt(5, 12);
                                 PlaceTreeCone(x, topLayer + 1, z, height, height / 4, height / 4);
                             }
                         }
@@ -817,7 +820,7 @@ function GenerateWorld() {
                                 PlaceGroundCover(x, topLayer, z, 12);
                             }
                             if (RandomChance(0.015)) {
-                                let height = Math.round(Math.random() * 6 + 4);
+                                let height = RandomInt(4, 10);
                                 PlaceTreeCone(x, topLayer + 1, z, height, height / 5, height / 4);
                             }
                         }           
@@ -837,12 +840,12 @@ function GenerateWorld() {
                             PlaceGroundCover(x, topLayer + 1, z, 6);
                         }
                         if (RandomChance(0.007)) {
-                            let height = Math.round(Math.random() * 4 + 1);
+                            let height = RandomInt(2, 5);
                             PlaceTrunk(x, topLayer + 1, z, height, 8);
                         }                        
 
                         if (RandomChance(0.012)) {
-                            let height = Math.round(Math.random() * 6 + 5);
+                            let height = RandomInt(5, 11);
                             PlaceTreeCone(x, topLayer + 1, z, height, 1.7 * height, height - 1, 0.7, 8, 0.03, 2);
                         }
                         break;
@@ -877,8 +880,11 @@ function GenerateWorld() {
                         if (RandomChance(0.015)) {
                             PlaceGroundCover(x, topLayer + 1, z, 1);
                         }
+                        if (RandomChance(0.01)) {
+                            PlaceGroundCover(x, topLayer, z, 19);
+                        }
                         if (RandomChance(0.015)) {
-                            let height = Math.round(Math.random() * (seaLevel - topLayer - 1) + 1);
+                            let height = RandomInt(1, seaLevel - topLayer - 1);
                             PlaceTrunk(x, topLayer + 1, z, height, 7);
                         }
                         break;
@@ -891,14 +897,17 @@ function GenerateWorld() {
                         if (RandomChance(0.06)) {
                             PlaceGroundCover(x, topLayer + 1, z, 11);
                         }
-                        if (RandomChance(0.0175)) {
-                            let height = Math.round(Math.random() * (seaLevel - topLayer - 1) + 1);
-                            PlaceTrunk(x, topLayer + 1, z, height, 7);
+                        if (RandomChance(0.02)) {
+                            PlaceGroundCover(x, topLayer + 1, z, 19);
                         }
 
                         if (RandomChance(0.02)) {
                             let height = Math.round(Math.random() * 2 + 1);
                             PlaceTrunk(x, topLayer + 1, z, height, 8);
+                        }
+                        if (RandomChance(0.0175)) {
+                            let height = Math.round(Math.random() * (seaLevel - topLayer - 1) + 1);
+                            PlaceTrunk(x, topLayer + 1, z, height, 7);
                         }
                         break;
                 }
@@ -1147,7 +1156,6 @@ function CalculateVolumeLightSources(minCoords, maxCoords){
     }
 
     while (lightQueue.length > 0){
-        // Volumetric light data array stores 4 values: [r, g, b, light level]
         let thisNode = lightQueue.pop();
 
         let currID = GetBlockData(thisNode.position.x, thisNode.position.y, thisNode.position.z);
@@ -1167,38 +1175,12 @@ function CalculateVolumeLightSources(minCoords, maxCoords){
                     if (adjacentID === 0 || liquidID.includes(adjacentID)){
                         let key = Create3DCoordsKey(adjacentPos.x, adjacentPos.y, adjacentPos.z);
                         let adjacentLightData = volumetricLightData[key];
-<<<<<<< Updated upstream
-                        if (adjacentLightData === undefined) { adjacentLightData = [0, 0, 0, 0]; }
-                        
-                        let adjacentLightColor = new BABYLON.Color3(adjacentLightData[0], adjacentLightData[1], adjacentLightData[2]);
-                        let adjacentLightLevel = adjacentLightData[3];
-
-                        if (adjacentLightColor.equals(black) || adjacentLightColor.equals(thisNode.lightColor)){
-                            // If the adjacent light color is the same as the current one, make a new node of the same color and light level -1
-                            if (adjacentLightLevel < newLightValue){
-                                volumetricLightData[key] = [thisNode.lightColor.r, thisNode.lightColor.g, thisNode.lightColor.b, newLightValue];
-                                lightQueue.unshift(new BABYLON.LightNode(adjacentPos, newLightValue, thisNode.lightColor));
-                            }
-=======
                         if (adjacentLightData === undefined) { adjacentLightData = [0, 0, 0, 0, 0]; }
         
                         if (adjacentLightData[3] < newLightValue){
                             volumetricLightData[key] = [thisNode.lightColor.r, thisNode.lightColor.g, thisNode.lightColor.b, newLightValue, thisNode.sourceID];
                             lightQueue.unshift(new BABYLON.LightNode(adjacentPos, newLightValue, thisNode.lightColor, thisNode.sourceID));
->>>>>>> Stashed changes
                         }
-                        else{ //if (adjacentLightColor.r < thisNode.lightColor.r && adjacentLightColor.g < thisNode.lightColor.g && adjacentLightColor.b < thisNode.lightColor.b){
-                            // If the adjacent color is different, set the new rgb channel to a weighted sum of the two colors
-                            let lightSum = thisNode.lightValue + adjacentLightLevel;
-                            let thisWeight = thisNode.lightValue / lightSum;
-                            let adjacentWeight = adjacentLightLevel / lightSum;
-
-                            let averageColor = thisNode.lightColor.scale(thisWeight).combine(adjacentLightColor.scale(adjacentWeight));
-                            let highestLightValue = Math.max(newLightValue, adjacentLightLevel);
-
-                            volumetricLightData[key] = [averageColor.r, averageColor.g, averageColor.b, highestLightValue];
-                            //lightQueue.unshift(new BABYLON.LightNode(adjacentPos, newLightValue, averageColor));
-                        }   
                     }
                 }
 
@@ -1286,7 +1268,7 @@ function CreateFaceMeshes(x, y, z) {
                 let lightData = volumetricLightData[key]; 
                 if (lightData === undefined) {
                     lightValue = 0;
-                    lightColor = black;
+                    lightColor = color_black;
                 }
                 else{
                     lightValue = lightData[3];
@@ -1322,7 +1304,7 @@ function CreateFaceMeshes(x, y, z) {
                 let lightData = volumetricLightData[key]; 
                 if (lightData === undefined) {
                     lightValue = 0;
-                    lightColor = black;
+                    lightColor = color_black;
                 }
                 else{
                     lightValue = lightData[3];
@@ -1408,7 +1390,7 @@ function ClearChunks() {
     meshes.length = 1;
     visibleFaces = {};
 
-    //var placeholderScene = new SoftEngine.Mesh("Scene Placeholder", 0, 0, black, null, 0);
+    //var placeholderScene = new SoftEngine.Mesh("Scene Placeholder", 0, 0, color_black, null, 0);
     //meshes.push(placeholderScene);
 }
 

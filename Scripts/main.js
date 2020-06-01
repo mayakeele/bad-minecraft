@@ -21,19 +21,19 @@ var drawNormals = false;
 var wireOffset = 0.000075;
 
 // r,g,b,a are from 0 to 255
-const clear = new BABYLON.Color3(0, 0, 0);
-const white = new BABYLON.Color3(255, 255, 255);
-const black = new BABYLON.Color3(0, 0, 0);
-const red = new BABYLON.Color3(255, 0, 0);
-const orange = new BABYLON.Color3(255, 150, 0);
-const yellow = new BABYLON.Color3(255, 235, 40);
-const green = new BABYLON.Color3(0, 0, 255);
-const blue = new BABYLON.Color3(0, 0, 255);
-const indigo = new BABYLON.Color3(140, 30, 255);
-const synthPink = new BABYLON.Color3(242, 34, 255);
-const synthMagenta = new BABYLON.Color3(255, 41, 117);
-const lightGray = new BABYLON.Color3(220, 220, 220);
-const alphaGrassGreen = new BABYLON.Color3(40, 255, 80);
+const color_clear = new BABYLON.Color3(0, 0, 0);
+const color_black = new BABYLON.Color3(0, 0, 0);
+const color_white = new BABYLON.Color3(255, 255, 255);
+const color_red = new BABYLON.Color3(255, 0, 0);
+const color_orange = new BABYLON.Color3(255, 150, 0);
+const color_yellow = new BABYLON.Color3(255, 235, 40);
+const color_green = new BABYLON.Color3(0, 0, 255);
+const color_blue = new BABYLON.Color3(0, 0, 255);
+const color_indigo = new BABYLON.Color3(140, 30, 255);
+const color_pink = new BABYLON.Color3(242, 34, 255);
+const color_magenta = new BABYLON.Color3(255, 41, 117);
+const color_lightGray = new BABYLON.Color3(220, 220, 220);
+const color_oldMinecraftGrass = new BABYLON.Color3(40, 255, 80);
 
 const sunny = new BABYLON.Color3(255, 252, 211);
 const skyBlue = new BABYLON.Color3(133, 216, 237)
@@ -45,24 +45,25 @@ const sunsetOrange = new BABYLON.Color3(253, 182, 85);
 const sunsetPurple = new BABYLON.Color3(112, 34, 241);
 const midnightBlue = new BABYLON.Color3(6, 13, 28);
 
-const stoneGray = new BABYLON.Color3(150, 150, 150);
-const topsoilBrown = new BABYLON.Color3(109, 82, 43);
-const brightGrassGreen = new BABYLON.Color3(87, 185, 39);
-const waterBlue = new BABYLON.Color3(22, 85, 222);
-const sandBeige = new BABYLON.Color3(240, 225, 150);
-const woodBrown = new BABYLON.Color3(74, 50, 17);
-const leafGreen = new BABYLON.Color3(61, 140, 21);
-const cactusGreen = new BABYLON.Color3(124, 168, 0);
-const lavaRed = new BABYLON.Color3(255, 82, 35);
-const clayRed = new BABYLON.Color3(203, 109, 49);
-const cobblestoneGrey = new BABYLON.Color3(98, 94, 90);
-const snowWhite = new BABYLON.Color3(250, 250, 250);
-const waterTurquoise = new BABYLON.Color3(68, 151, 128);
-const cloudGrey = new BABYLON.Color3(211, 220, 236);
-const campfireOrange = new BABYLON.Color3(255, 180, 56);
-const soulfireBlue = new BABYLON.Color3(99, 199, 209);
-const lightbulbYellow = new BABYLON.Color3(255, 254, 211);
-const lightFruitGreen =  new BABYLON.Color3(90, 171, 26);
+const color_stone = new BABYLON.Color3(150, 150, 150);
+const color_dirt = new BABYLON.Color3(109, 82, 43);
+const color_grass = new BABYLON.Color3(87, 185, 39);
+const color_blueWater = new BABYLON.Color3(22, 85, 222);
+const color_sand = new BABYLON.Color3(240, 225, 150);
+const color_wood = new BABYLON.Color3(74, 50, 17);
+const color_leaves = new BABYLON.Color3(61, 140, 21);
+const color_bush = new BABYLON.Color3(124, 168, 0);
+const color_lava = new BABYLON.Color3(255, 82, 35);
+const color_clay = new BABYLON.Color3(203, 109, 49);
+const color_cobblestone = new BABYLON.Color3(98, 94, 90);
+const color_snow = new BABYLON.Color3(250, 250, 250);
+const color_turquoiseWater = new BABYLON.Color3(68, 151, 128);
+const color_cloud = new BABYLON.Color3(211, 220, 236);
+const color_fire = new BABYLON.Color3(255, 180, 56);
+const color_soulfire = new BABYLON.Color3(99, 199, 209);
+const color_lightbulb = new BABYLON.Color3(255, 254, 211);
+const color_lightfruit =  new BABYLON.Color3(185, 230, 65);
+const color_seaLight = new BABYLON.Color3(30, 132, 255);
 
 
 
@@ -107,7 +108,7 @@ function init() {
     cam = new SoftEngine.Camera();
     device = new SoftEngine.Device(canvas);
 
-    var placeholderScene = new SoftEngine.Mesh("Scene Placeholder", 0, 0, black, null, 0);
+    var placeholderScene = new SoftEngine.Mesh("Scene Placeholder", 0, 0, color_black, null, 0);
     meshes.push(placeholderScene);
 
     cam.Position = new BABYLON.Vector3(0, 0, 0);

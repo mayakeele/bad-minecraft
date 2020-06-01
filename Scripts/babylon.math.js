@@ -57,7 +57,7 @@ var BABYLON;
         };
 
         Color3.Average = function Average(...colors) {
-            let avg = black;
+            let avg = color_black;
             for (let i = 0; i < colors.length; i++){
                 avg = avg.add(colors[i]);
             }

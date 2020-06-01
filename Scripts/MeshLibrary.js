@@ -10,14 +10,14 @@ function findMesh(inputName) {
 function newEmptyMesh() {
     // DOES NOT PUSH THE MESH, YOU MUST DO IT MANUALLY OR INSERT IT AT A SPECIFIC SPOT
     var thisMesh;
-    thisMesh = new SoftEngine.Mesh("", 0, 0, black, black, 0);
+    thisMesh = new SoftEngine.Mesh("", 0, 0, color_black, color_black, 0);
     thisMesh.Position = new BABYLON.Vector3(0, 0, 0);
     thisMesh.Rotation = new BABYLON.Vector3(0, 0, 0);
     return thisMesh;
 }
 
 
-function newRect(name, xWidth, yWidth, zWidth, faceColor, wireColor = black, wireShader = 0) {
+function newRect(name, xWidth, yWidth, zWidth, faceColor, wireColor = color_black, wireShader = 0) {
     var thisRect;
     thisRect = new SoftEngine.Mesh(name, 8, 12, faceColor, wireColor, wireShader);
 
@@ -150,7 +150,7 @@ function newRect(name, xWidth, yWidth, zWidth, faceColor, wireColor = black, wir
 }
 
 
-function newFace(name, directionNum, faceColor, wireColor = black){
+function newFace(name, directionNum, faceColor, wireColor = color_black){
     var thisFace;
     thisFace = new SoftEngine.Mesh(name, 4, 2, faceColor, wireColor, 0);
 
@@ -278,7 +278,7 @@ function newFace(name, directionNum, faceColor, wireColor = black){
 }
 
 
-function newCube(name, width, faceColor, wireColor = black, wireShader = 0) {
+function newCube(name, width, faceColor, wireColor = color_black, wireShader = 0) {
     var thisCube;
     thisCube = new SoftEngine.Mesh(name, 8, 12, faceColor, wireColor, wireShader);
 
@@ -409,7 +409,7 @@ function newCube(name, width, faceColor, wireColor = black, wireShader = 0) {
 }
 
 
-function newQuad(name, xWidth, zWidth, faceColor, wireColor = black, wireShader = 0) {
+function newQuad(name, xWidth, zWidth, faceColor, wireColor = color_black, wireShader = 0) {
     var thisQuad;
     thisQuad = new SoftEngine.Mesh(name, 4, 2, faceColor, wireColor, wireShader);
     meshes.push(thisQuad);
@@ -444,7 +444,7 @@ function newQuad(name, xWidth, zWidth, faceColor, wireColor = black, wireShader 
 }
 
 
-function newPlane(name, xWidth, zWidth, xDetail, zDetail, faceColor, wireColor = black, wireShader = 0) {
+function newPlane(name, xWidth, zWidth, xDetail, zDetail, faceColor, wireColor = color_black, wireShader = 0) {
     var xVerts = xDetail + 1;
     var zVerts = zDetail + 1;
     var thisPlane;
@@ -520,7 +520,7 @@ function newPlane(name, xWidth, zWidth, xDetail, zDetail, faceColor, wireColor =
 }
 
 
-function newTerrainGridRand(name, xWidth, zWidth, xDetail, zDetail, height, faceColor, wireColor = black, wireShader = 0) {
+function newTerrainGridRand(name, xWidth, zWidth, xDetail, zDetail, height, faceColor, wireColor = color_black, wireShader = 0) {
     var xVerts = xDetail + 1;
     var zVerts = zDetail + 1;
     var thisTerrainGrid;
@@ -596,7 +596,7 @@ function newTerrainGridRand(name, xWidth, zWidth, xDetail, zDetail, height, face
 }
 
 
-function newTerrainGridSmooth(name, xWidth, zWidth, xDetail, zDetail, height, interval, faceColor, wireColor = black, wireShader = 0) {
+function newTerrainGridSmooth(name, xWidth, zWidth, xDetail, zDetail, height, interval, faceColor, wireColor = color_black, wireShader = 0) {
     if (interval <= 0 || interval % 2 != 0) {
         interval = 2;
     }
@@ -774,7 +774,7 @@ function newTerrainGridSmooth(name, xWidth, zWidth, xDetail, zDetail, height, in
 
 
 var cosOffset = Math.PI / 2;
-function newTerrainGridSin(name, xWidth, zWidth, xDetail, zDetail, height, numWaves, offset, faceColor, wireColor = black, wireShader = 0) {
+function newTerrainGridSin(name, xWidth, zWidth, xDetail, zDetail, height, numWaves, offset, faceColor, wireColor = color_black, wireShader = 0) {
     var xVerts = xDetail + 1;
     var zVerts = zDetail + 1;
     var thisTerrainGrid;

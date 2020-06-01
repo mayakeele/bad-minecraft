@@ -260,7 +260,7 @@
         };
 
 
-        Device.prototype.drawLine = function (point0, point1, color, shader) {
+        Device.prototype.drawLine = function (point0, point1, color) {
             var x0;
             var y0;
             var x1;
@@ -351,201 +351,183 @@
         var edgePadding = 40;  // 40
 
         Device.prototype.render = function (camera, meshes) {
-            var viewMatrix = BABYLON.Matrix.LookAtLH(camera.Position, camera.Target, BABYLON.Vector3.Up());
-            var projectionMatrix = BABYLON.Matrix.PerspectiveFovLH(cameraFOV, this.workingWidth / this.workingHeight, 0.01, 1.0);
+            let viewMatrix = BABYLON.Matrix.LookAtLH(camera.Position, camera.Target, BABYLON.Vector3.Up());
+            let projectionMatrix = BABYLON.Matrix.PerspectiveFovLH(cameraFOV, this.workingWidth / this.workingHeight, 0.01, 1.0);
 
-            for (var index = 0; index < meshes.length; index++) {
-                var cMesh = meshes[index];
-                var worldMatrix = BABYLON.Matrix.RotationYawPitchRoll(cMesh.Rotation.y, cMesh.Rotation.x, cMesh.Rotation.z).multiply(BABYLON.Matrix.Translation(cMesh.Position.x, cMesh.Position.y, cMesh.Position.z));
-                var camSpaceMatrix = worldMatrix.multiply(viewMatrix);
-                var transformMatrix = camSpaceMatrix.multiply(projectionMatrix);
+            for (let index = 0; index < meshes.length; index++) {
+                let cMesh = meshes[index];
+                let worldMatrix = BABYLON.Matrix.RotationYawPitchRoll(cMesh.Rotation.y, cMesh.Rotation.x, cMesh.Rotation.z).multiply(BABYLON.Matrix.Translation(cMesh.Position.x, cMesh.Position.y, cMesh.Position.z));
+                let camSpaceMatrix = worldMatrix.multiply(viewMatrix);
+                let transformMatrix = camSpaceMatrix.multiply(projectionMatrix);
 
-                for (var indexFaces = 0; indexFaces < cMesh.Faces.length; indexFaces++) {
-                    var currentFace = cMesh.Faces[indexFaces];
-                    var vertexA = cMesh.Vertices[currentFace.A];
-                    var vertexB = cMesh.Vertices[currentFace.B];
-                    var vertexC = cMesh.Vertices[currentFace.C];
+                for (let indexFaces = 0; indexFaces < cMesh.Faces.length; indexFaces++) {
+                    let currentFace = cMesh.Faces[indexFaces];
+                    let vertexA = cMesh.Vertices[currentFace.A];
+                    let vertexB = cMesh.Vertices[currentFace.B];
+                    let vertexC = cMesh.Vertices[currentFace.C];
 
-                    var normalX = currentFace.NX;
-                    var normalY = currentFace.NY;
-                    var normalZ = currentFace.NZ;
-                    var normalVector = new BABYLON.Vector3(normalX, normalY, normalZ);
+                    let normalVector = new BABYLON.Vector3(currentFace.NX, currentFace.NY, currentFace.NZ);
                     normalVector.normalize();
                     //var worldNormal = BABYLON.Vector3.TransformCoordinates(normalVector, worldMatrix);
 
+                    let faceCenter = (vertexA.add(vertexB.add(vertexC))).scale(1 / 3);
+                    let faceCamSpace = BABYLON.Vector3.TransformCoordinates(faceCenter, camSpaceMatrix);
 
-                    var faceCenter = (vertexA.add(vertexB.add(vertexC))).scale(1 / 3);
-                    var faceCamSpace = BABYLON.Vector3.TransformCoordinates(faceCenter, camSpaceMatrix);
-
-                    var faceColor = cMesh.FaceColor;
+                    let faceColor = cMesh.FaceColor;
 
                     //var camSpaceNormal = BABYLON.Vector3.TransformNormal(normalVector, camSpaceMatrix);
-                    var centerPoint = BABYLON.Vector3.TransformCoordinates(faceCenter, worldMatrix);
-                    var normalDotCamera = BABYLON.Vector3.Dot(centerPoint.subtract(cam.Position), normalVector);
+                    let centerPoint = BABYLON.Vector3.TransformCoordinates(faceCenter, worldMatrix);
+                    let normalDotCamera = BABYLON.Vector3.Dot(centerPoint.subtract(cam.Position), normalVector);
 
 
-                    // LINE DRAWING, IF ENABLED
-                    
-                    var wireColor = cMesh.WireColor;
-                    //var wireShader = cMesh.WireShader;
+                    // Only render this face if it is in front of the camera and is not a back-face
+                    if (normalDotCamera <= 0 && faceCamSpace.z > 0) {
+                        let pixelA = this.project(vertexA, transformMatrix);
+                        let pixelB = this.project(vertexB, transformMatrix);
+                        let pixelC = this.project(vertexC, transformMatrix);
 
-                    
+                        // Checks if any of the current vertices are within the screen boundaries, if they are then it proceeds to render the face
+                        if ((pixelA.x >= -edgePadding && pixelA.x <= this.workingWidth + edgePadding && pixelA.y >= -edgePadding && pixelA.y <= this.workingHeight + edgePadding) ||
+                            (pixelB.x >= -edgePadding && pixelB.x <= this.workingWidth + edgePadding && pixelB.y >= -edgePadding && pixelB.y <= this.workingHeight + edgePadding) ||
+                            (pixelC.x >= -edgePadding && pixelC.x <= this.workingWidth + edgePadding && pixelC.y >= -edgePadding && pixelC.y <= this.workingHeight + edgePadding)) {
 
-                    //FACE DRAWING, IF ENABLED
-                    if (showFaces == true && faceColor != null) {
+                            // First, add ambient light
+                            let ndotl = 0;
+                            let outputColor = new BABYLON.Color3(ambientLight * faceColor.r, ambientLight * faceColor.g, ambientLight * faceColor.b);
 
-                        // First, immediately moves on if the current face is a back face
-                        if (normalDotCamera <= 0 && faceCamSpace.z > 0) {
-                            var pixelA = this.project(vertexA, transformMatrix);
-                            var pixelB = this.project(vertexB, transformMatrix);
-                            var pixelC = this.project(vertexC, transformMatrix);
-                            // Checks if any of the current vertices are within the screen boundaries, if they are then it proceeds to render the face
-                            if ((pixelA.x >= -edgePadding && pixelA.x <= this.workingWidth + edgePadding && pixelA.y >= -edgePadding && pixelA.y <= this.workingHeight + edgePadding) ||
-                                (pixelB.x >= -edgePadding && pixelB.x <= this.workingWidth + edgePadding && pixelB.y >= -edgePadding && pixelB.y <= this.workingHeight + edgePadding) ||
-                                (pixelC.x >= -edgePadding && pixelC.x <= this.workingWidth + edgePadding && pixelC.y >= -edgePadding && pixelC.y <= this.workingHeight + edgePadding)) {
-                                
-                                //goes through each light and adds its color value times the angle
+                            switch (currLightingMode){
 
-                                //var worldA = BABYLON.Vector3.TransformCoordinates(vertexA, worldMatrix);
-                                //var worldB = BABYLON.Vector3.TransformCoordinates(vertexB, worldMatrix);
-                                //var worldC = BABYLON.Vector3.TransformCoordinates(vertexC, worldMatrix);
-                                
+                                case LightingMode.Flat_InverseSquared:
+                                    for (let indexLights = 0; indexLights < lights.length; indexLights++) {
+                                        let thisLight = lights[indexLights];
+                                        let distanceMultiplier = 1;
+                                        let maxMultiplier = 1;
 
-                                // First, add ambient light
-                                var ndotl = 0;
-                                var outputColor = new BABYLON.Color3(ambientLight * faceColor.r, ambientLight * faceColor.g, ambientLight * faceColor.b);
-
-                                switch (currLightingMode){
-
-                                    case LightingMode.Flat_InverseSquared:
-                                        for (var indexLights = 0; indexLights < lights.length; indexLights++) {
-                                            let thisLight = lights[indexLights];
-                                            let distanceMultiplier = 1;
-                                            let maxMultiplier = 1;
-
-                                            if (thisLight.Type == LightType.Point) {
-                                                ndotl = this.computeNDotL(centerPoint, normalVector, thisLight.Position);
-                                                var dist = BABYLON.Vector3.DistanceSquared(thisLight.Position, centerPoint);
-                                                distScale = Math.min(thisLight.Intensity / dist, maxMultiplier);
-                                            }
-        
-                                            if (thisLight.Type == LightType.Directional) {
-                                                //thisLight.Direction.normalize();
-                                                ndotl = this.computeNDotL(centerPoint, normalVector, centerPoint.subtract(thisLight.Direction));
-                                                //var dist = BABYLON.Vector3.Distance(thisLight.Position, centerPoint)
-                                                distScale = thisLight.Intensity;
-                                            }
-
-                                            ndotl = this.clamp(ndotl, 0, 1);
-
-                                            outputColor.r += distScale * ndotl * faceColor.r * thisLight.Color.r / 255;
-                                            outputColor.g += distScale * ndotl * faceColor.g * thisLight.Color.g / 255;
-                                            outputColor.b += distScale * ndotl * faceColor.b * thisLight.Color.b / 255;
+                                        if (thisLight.Type == LightType.Point) {
+                                            ndotl = this.computeNDotL(centerPoint, normalVector, thisLight.Position);
+                                            let dist = BABYLON.Vector3.DistanceSquared(thisLight.Position, centerPoint);
+                                            distScale = Math.min(thisLight.Intensity / dist, maxMultiplier);
+                                        }
+    
+                                        if (thisLight.Type == LightType.Directional) {
+                                            //thisLight.Direction.normalize();
+                                            ndotl = this.computeNDotL(centerPoint, normalVector, centerPoint.subtract(thisLight.Direction));
+                                            //var dist = BABYLON.Vector3.Distance(thisLight.Position, centerPoint)
+                                            distScale = thisLight.Intensity;
                                         }
 
-                                        
-                                        break;
+                                        ndotl = this.clamp(ndotl, 0, 1);
+
+                                        outputColor.r += distScale * ndotl * faceColor.r * thisLight.Color.r / 255;
+                                        outputColor.g += distScale * ndotl * faceColor.g * thisLight.Color.g / 255;
+                                        outputColor.b += distScale * ndotl * faceColor.b * thisLight.Color.b / 255;
+                                    }
+
                                     
-                                    case LightingMode.Flat_Linear:
-                                        for (var indexLights = 0; indexLights < lights.length; indexLights++) {
-                                            let thisLight = lights[indexLights];
-                                            let distanceMultiplier = 1;
-                                            let maxMultiplier = 1;
-
-                                            if (thisLight.Type == LightType.Point) {
-                                                ndotl = this.computeNDotL(centerPoint, normalVector, thisLight.Position);
-                                                var dist = BABYLON.Vector3.Distance(thisLight.Position, centerPoint);
-                                                distScale = this.clamp(thisLight.Intensity - (dist / 8), 0, maxMultiplier);
-                                            }
-        
-                                            if (thisLight.Type == LightType.Directional) {
-                                                //thisLight.Direction.normalize();
-                                                ndotl = this.computeNDotL(centerPoint, normalVector, centerPoint.subtract(thisLight.Direction));
-                                                //var dist = BABYLON.Vector3.Distance(thisLight.Position, centerPoint)
-                                                distScale = thisLight.Intensity;
-                                            }
-
-                                            ndotl = this.clamp(ndotl, 0, 1);
-
-                                            outputColor.r += distScale * ndotl * faceColor.r * thisLight.Color.r / 255;
-                                            outputColor.g += distScale * ndotl * faceColor.g * thisLight.Color.g / 255;
-                                            outputColor.b += distScale * ndotl * faceColor.b * thisLight.Color.b / 255;
-                                        }
-                                        
-                                        break;
-                                    
-                                    case LightingMode.Voxel:
-                                        if (cMesh.Direction !== 0){
-                                            let blockPos = cMesh.Position.round();
-                                            let sunlightData = GetBlockLightData(blockPos.x, blockPos.y, blockPos.z);
-        
-                                            let sunlightLevel = sunlightData[cMesh.Direction - 1] / maxLightLevel;
-                                            let volumetricLightLevel = cMesh.VolumetricLightLevel / maxLightLevel;
-                                            
-                                            let sunlightColor = sunLight.Color.scale(sunlightLevel);
-                                            let volumetricLightColor = cMesh.VolumetricLightColor.scale(volumetricLightLevel);
-                                            //let displayLightLevel = Math.max(sunlightLevel, volumetricLightLevel);
-                                            // Change 'torchOrange' to the current mesh's light color
-                                            let displayLightColor = sunlightColor.combine(volumetricLightColor);
-
-                                            outputColor.r += faceColor.r * displayLightColor.r / 255;
-                                            outputColor.g += faceColor.g * displayLightColor.g / 255;
-                                            outputColor.b += faceColor.b * displayLightColor.b / 255;
-                                        }
-
-                                        break;
-
-                                }
+                                    break;
                                 
+                                case LightingMode.Flat_Linear:
+                                    for (var indexLights = 0; indexLights < lights.length; indexLights++) {
+                                        let thisLight = lights[indexLights];
+                                        let distanceMultiplier = 1;
+                                        let maxMultiplier = 1;
 
-                                if (drawFog === true) {
-                                    // Draw distance fog by shifting face color towards the skybox color (reducing contrast)                                  
-                                    let camDist = BABYLON.Vector3.Distance(cam.Position, centerPoint);
-                                    let distRatio = camDist / (chunkWidth * (renderDistance + 0.5));
+                                        if (thisLight.Type == LightType.Point) {
+                                            ndotl = this.computeNDotL(centerPoint, normalVector, thisLight.Position);
+                                            let dist = BABYLON.Vector3.Distance(thisLight.Position, centerPoint);
+                                            distScale = this.clamp(thisLight.Intensity - (dist / 8), 0, maxMultiplier);
+                                        }
+    
+                                        if (thisLight.Type == LightType.Directional) {
+                                            //thisLight.Direction.normalize();
+                                            ndotl = this.computeNDotL(centerPoint, normalVector, centerPoint.subtract(thisLight.Direction));
+                                            //var dist = BABYLON.Vector3.Distance(thisLight.Position, centerPoint)
+                                            distScale = thisLight.Intensity;
+                                        }
 
-                                    if (distRatio > 0.8) {
-                                        // Cubes the gradient so that closer objects have less fog but the furthest ones are still obscured
-                                        let densityGradient = 5 * distRatio - 4;//Math.pow(distRatio, 3) * fogIntensity;
+                                        ndotl = this.clamp(ndotl, 0, 1);
 
-                                        outputColor.r = this.interpolate(outputColor.r, skyBoxColor.r, densityGradient);
-                                        outputColor.g = this.interpolate(outputColor.g, skyBoxColor.g, densityGradient);
-                                        outputColor.b = this.interpolate(outputColor.b, skyBoxColor.b, densityGradient);
+                                        outputColor.r += distScale * ndotl * faceColor.r * thisLight.Color.r / 255;
+                                        outputColor.g += distScale * ndotl * faceColor.g * thisLight.Color.g / 255;
+                                        outputColor.b += distScale * ndotl * faceColor.b * thisLight.Color.b / 255;
+                                    }
+                                    
+                                    break;
+                                
+                                case LightingMode.Voxel:
+                                    if (cMesh.Direction !== 0){
+                                        let blockPos = cMesh.Position.round();
+                                        let sunlightData = GetBlockLightData(blockPos.x, blockPos.y, blockPos.z);
+    
+                                        let sunlightLevel = sunlightData[cMesh.Direction - 1] / maxLightLevel;
+                                        let volumetricLightLevel = cMesh.VolumetricLightLevel / maxLightLevel;
+                                        
+                                        let sunlightColor = sunLight.Color.scale(sunlightLevel);
+                                        let volumetricLightColor = cMesh.VolumetricLightColor.scale(volumetricLightLevel);
+                                        //let displayLightLevel = Math.max(sunlightLevel, volumetricLightLevel);
+                                        // Change 'torchOrange' to the current mesh's light color
+                                        let displayLightColor = sunlightColor.combine(volumetricLightColor);
 
-                                        if (showWires) {
-                                            var lineColor = new BABYLON.Color3(0, 0, 0);
-                                            lineColor.r = this.interpolate(lineColor.r, skyBoxColor.r, densityGradient);
-                                            lineColor.g = this.interpolate(lineColor.g, skyBoxColor.g, densityGradient);
-                                            lineColor.b = this.interpolate(lineColor.b, skyBoxColor.b, densityGradient);
-                                        }                                        
-                                    }                                  
-                                }
+                                        outputColor.r += faceColor.r * displayLightColor.r / 255;
+                                        outputColor.g += faceColor.g * displayLightColor.g / 255;
+                                        outputColor.b += faceColor.b * displayLightColor.b / 255;
+                                    }
 
-                                // Apply masking color
-                                outputColor.r += maskColor.r;
-                                outputColor.g += maskColor.g;
-                                outputColor.b += maskColor.b;
+                                    break;
 
+                            }
+                            
+
+                            if (drawFog === true) {
+                                // Draw distance fog by shifting face color towards the skybox color (reducing contrast)                                  
+                                let camDist = BABYLON.Vector3.Distance(cam.Position, centerPoint);
+                                let distRatio = camDist / (chunkWidth * (renderDistance + 0.5));
+
+                                if (distRatio > 0.8) {
+                                    // Cubes the gradient so that closer objects have less fog but the furthest ones are still obscured
+                                    let densityGradient = 5 * distRatio - 4;//Math.pow(distRatio, 3) * fogIntensity;
+
+                                    outputColor.r = this.interpolate(outputColor.r, skyBoxColor.r, densityGradient);
+                                    outputColor.g = this.interpolate(outputColor.g, skyBoxColor.g, densityGradient);
+                                    outputColor.b = this.interpolate(outputColor.b, skyBoxColor.b, densityGradient);
+
+                                    /*if (showWires) {
+                                        var lineColor = new BABYLON.Color3(0, 0, 0);
+                                        lineColor.r = this.interpolate(lineColor.r, skyBoxColor.r, densityGradient);
+                                        lineColor.g = this.interpolate(lineColor.g, skyBoxColor.g, densityGradient);
+                                        lineColor.b = this.interpolate(lineColor.b, skyBoxColor.b, densityGradient);
+                                    }*/
+                                }                                  
+                            }
+
+                            // Apply masking color
+                            outputColor.r += maskColor.r;
+                            outputColor.g += maskColor.g;
+                            outputColor.b += maskColor.b;
+
+                            //FACE DRAWING, IF ENABLED
+                            if (showFaces == true && faceColor != null) {
                                 this.drawTriangle(pixelA, pixelB, pixelC, outputColor);
+                            }
 
-                                // Draw lines around face edges
-                                if (showWires) {
-                                    this.drawLine(pixelA, pixelB, lineColor, 0);
-                                    this.drawLine(pixelB, pixelC, lineColor, 0);
-                                    //this.drawLine(pixelC, pixelA, wireColor, 0);
-                                }
+                            // Draw lines around face edges
+                            if (showWires) {
+                                this.drawLine(pixelA, pixelB, color_black);
+                                this.drawLine(pixelB, pixelC, color_black);
+                                //this.drawLine(pixelC, pixelA, wireColor, 0);
                             }
                         }
-                                              
                     }
+                                              
 
                     // NORMAL VECTOR DRAWING, IF ENABLED
                     if (drawNormals == true) {
-                        this.drawLine(this.project(faceCenter, transformMatrix), this.project(faceCenter.add(normalVector.scale(0.2)), transformMatrix), red, 0);
+                        this.drawLine(this.project(faceCenter, transformMatrix), this.project(faceCenter.add(normalVector.scale(0.2)), transformMatrix), color_red, 0);
                     }
                 }
             }
 	
-			this.drawPoint(new BABYLON.Vector2(this.workingWidth / 2, this.workingHeight / 2), synthMagenta);
+			this.drawPoint(new BABYLON.Vector2(this.workingWidth / 2, this.workingHeight / 2), color_magenta);
         };
 
         return Device;
