@@ -40,11 +40,11 @@ var chunkUpdateCoords = BABYLON.Vector3.Zero();
 var blockData = Create3DArray(worldWidth, worldHeight, worldWidth);
 var visibleFaces = {};
 
-var volumetricLightData = {};
-var sunlightFaceData = {};
+var sourceLightVolumeData = {};
+var sunLightFaceData = {};
 var maxLightLevel = 12;
 var lightStepLength = 1;
-var maxLightSteps = 40;
+var maxLightSteps = 60;
 var lightUpdatesPerFrame = Math.pow(2 * renderDistance + 1, 2);
 
 var drawFog = true;
@@ -74,7 +74,7 @@ const colorID = [null,
     color_seaLight
 ];
 
-const blockTransparency = [null,
+const blockTransparency = [1,
     0,
     0,
     0.2,
@@ -82,18 +82,18 @@ const blockTransparency = [null,
     0.2,
     0,
     0.5,
-    0,
-    0,
+    0.4,
+    1,
     0,
     0,
     0.2,
-    0.6,
     0.7,
-    0.5,
-    0.5,
-    0.5,
-    0,
-    0.5
+    0.6,
+    1,
+    1,
+    1,
+    1,
+    1
 ];
 
 const liquidID = [4, 9, 13];
@@ -1113,7 +1113,7 @@ function CalculateChunkSunlight(chunkCoords){
                     lightData = [0, 0, 0, 0, 0, 0];
                 }
                 
-                sunlightFaceData[key] = lightData;
+                sunLightFaceData[key] = lightData;
             }
         }
     }
@@ -1142,7 +1142,7 @@ function CalculateVolumeLightSources(minCoords, maxCoords){
                 }
 
                 let key = Create3DCoordsKey(x, y, z);
-                let lightData = volumetricLightData[key];
+                let lightData = sourceLightVolumeData[key];
                 if (lightData === undefined) { lightData = [0, 0, 0, 0, 0]; }
          
                 let level = lightData[3];
@@ -1159,7 +1159,8 @@ function CalculateVolumeLightSources(minCoords, maxCoords){
         let thisNode = lightQueue.pop();
 
         let currID = GetBlockData(thisNode.position.x, thisNode.position.y, thisNode.position.z);
-        let decayAmount = lightDecayRate[thisNode.sourceID];
+        let thisTransparency = blockTransparency[currID];
+        let decayAmount = lightDecayRate[thisNode.sourceID] / thisTransparency;
         
         let newLightValue = thisNode.lightValue - decayAmount;
 
@@ -1172,13 +1173,13 @@ function CalculateVolumeLightSources(minCoords, maxCoords){
                 if (adjacentPos.isWithinBounds(new BABYLON.Vector3(0, 0, 0), new BABYLON.Vector3(worldWidth-1, worldHeight-1, worldWidth-1))){
                     let adjacentID = GetBlockData(adjacentPos.x, adjacentPos.y, adjacentPos.z);
     
-                    if (adjacentID === 0 || liquidID.includes(adjacentID)){
+                    if (blockTransparency[adjacentID] > 0){
                         let key = Create3DCoordsKey(adjacentPos.x, adjacentPos.y, adjacentPos.z);
-                        let adjacentLightData = volumetricLightData[key];
+                        let adjacentLightData = sourceLightVolumeData[key];
                         if (adjacentLightData === undefined) { adjacentLightData = [0, 0, 0, 0, 0]; }
         
                         if (adjacentLightData[3] < newLightValue){
-                            volumetricLightData[key] = [thisNode.lightColor.r, thisNode.lightColor.g, thisNode.lightColor.b, newLightValue, thisNode.sourceID];
+                            sourceLightVolumeData[key] = [thisNode.lightColor.r, thisNode.lightColor.g, thisNode.lightColor.b, newLightValue, thisNode.sourceID];
                             lightQueue.unshift(new BABYLON.LightNode(adjacentPos, newLightValue, thisNode.lightColor, thisNode.sourceID));
                         }
                     }
@@ -1204,9 +1205,9 @@ function ClearVolumeLightSources(minCoords, maxCoords){
             for (let z = minCoords.z; z <= maxCoords.z; z++){
 
                 let key = Create3DCoordsKey(x, y, z);
-                volumetricLightData[key] = [0, 0, 0, 0];
-                //if (volumetricLightData.hasOwnProperty(key)){
-                    //delete volumetricLightData.key;
+                sourceLightVolumeData[key] = [0, 0, 0, 0];
+                //if (sourceLightVolumeData.hasOwnProperty(key)){
+                    //delete sourceLightVolumeData.key;
                 //}
             }
         }
@@ -1265,7 +1266,7 @@ function CreateFaceMeshes(x, y, z) {
                 let lightValue;
                 let lightColor;
                 let key = Create3DCoordsKey(adjacentPos.x, adjacentPos.y, adjacentPos.z);
-                let lightData = volumetricLightData[key]; 
+                let lightData = sourceLightVolumeData[key]; 
                 if (lightData === undefined) {
                     lightValue = 0;
                     lightColor = color_black;
@@ -1301,7 +1302,7 @@ function CreateFaceMeshes(x, y, z) {
                 let lightValue;
                 let lightColor;
                 let key = Create3DCoordsKey(adjacentPos.x, adjacentPos.y, adjacentPos.z);
-                let lightData = volumetricLightData[key]; 
+                let lightData = sourceLightVolumeData[key]; 
                 if (lightData === undefined) {
                     lightValue = 0;
                     lightColor = color_black;
@@ -1438,8 +1439,8 @@ function GetBlockLightData(x, y, z){
     let key = x + "," + y + "," + z;
     let values = [];
 
-    if (sunlightFaceData.hasOwnProperty(key)){
-        values = sunlightFaceData[key];
+    if (sunLightFaceData.hasOwnProperty(key)){
+        values = sunLightFaceData[key];
 
         if (values == undefined){
             values = [0, 0, 0, 0, 0, 0];
@@ -1454,7 +1455,7 @@ function GetBlockLightData(x, y, z){
 
 function SetBlockLightData(x, y, z, values){
     let key = x + "," + y + "," + z;
-    sunlightFaceData[key] = values;
+    sunLightFaceData[key] = values;
 }
 
 function Create3DCoordsKey(x, y, z){
