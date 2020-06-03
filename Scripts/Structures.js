@@ -1,5 +1,5 @@
 var BiomeDryDesert = {
-    CourseScaleCompression: 0.003,
+    CourseScaleCompression: 0.004,
     CourseScaleHeight: 4,
     FineScaleCompression: 0.004,
     FineScaleHeight: 2,
@@ -54,11 +54,11 @@ var BiomeHills = {
 };
 
 var BiomeLushDesert = {
-    CourseScaleCompression: 0.007,
+    CourseScaleCompression: 0.008,
     CourseScaleHeight: 4,
     FineScaleCompression: 0.01,
     FineScaleHeight: 3,
-    Offset: 5,
+    Offset: 4,
     SurfaceBlock: 5,
     SubsurfaceBlock: 2,
     LiquidBlock: 4

@@ -35,15 +35,15 @@ const color_magenta = new BABYLON.Color3(255, 41, 117);
 const color_lightGray = new BABYLON.Color3(220, 220, 220);
 const color_oldMinecraftGrass = new BABYLON.Color3(40, 255, 80);
 
-const sunny = new BABYLON.Color3(255, 252, 211);
-const skyBlue = new BABYLON.Color3(133, 216, 237)
-const hellishRed = new BABYLON.Color3(208, 11, 11);
-const twilightBlue = new BABYLON.Color3(12, 34, 99);
-const rainyGray = new BABYLON.Color3(93, 98, 120);
-const sunriseGold = new BABYLON.Color3(255, 192, 23);
-const sunsetOrange = new BABYLON.Color3(253, 182, 85);
-const sunsetPurple = new BABYLON.Color3(112, 34, 241);
-const midnightBlue = new BABYLON.Color3(6, 13, 28);
+const color_sunny = new BABYLON.Color3(255, 252, 211);
+const color_skyBlue = new BABYLON.Color3(133, 216, 237)
+const color_hellishRed = new BABYLON.Color3(208, 11, 11);
+const color_twilightBlue = new BABYLON.Color3(12, 34, 99);
+const color_rainyGray = new BABYLON.Color3(93, 98, 120);
+const color_sunriseGold = new BABYLON.Color3(255, 192, 23);
+const color_sunsetOrange = new BABYLON.Color3(253, 182, 85);
+const color_sunsetPurple = new BABYLON.Color3(112, 34, 241);
+const color_midnightBlue = new BABYLON.Color3(4, 7, 25);
 
 const color_stone = new BABYLON.Color3(150, 150, 150);
 const color_dirt = new BABYLON.Color3(109, 82, 43);
@@ -62,8 +62,8 @@ const color_cloud = new BABYLON.Color3(211, 220, 236);
 const color_fire = new BABYLON.Color3(255, 180, 56);
 const color_soulfire = new BABYLON.Color3(99, 199, 209);
 const color_lightbulb = new BABYLON.Color3(255, 254, 211);
-const color_lightfruit =  new BABYLON.Color3(185, 230, 65);
-const color_seaLight = new BABYLON.Color3(30, 132, 255);
+const color_lightfruit =  new BABYLON.Color3(158, 196, 56);
+const color_seaLight = new BABYLON.Color3(84, 34, 255);
 
 
 

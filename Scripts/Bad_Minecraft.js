@@ -19,11 +19,11 @@ const dayLength = 180;
 const sunSpeed = Math.PI / dayLength;
 var sunAngle = 0;
 
-var sunLight = new SoftEngine.Light("Sun", LightType.Directional, sunny, sunDefaultBrightness);
+var sunLight = new SoftEngine.Light("Sun", LightType.Directional, color_sunny, sunDefaultBrightness);
 sunLight.Direction = sunDefaultDirection;
 lights.push(sunLight);
 
-//var torchLight = new SoftEngine.Light("torch", LightType.Point, sunriseGold, 2.5);
+//var torchLight = new SoftEngine.Light("torch", LightType.Point, color_sunriseGold, 2.5);
 //lights.push(torchLight);
 
 var renderDistance = 4;
@@ -50,7 +50,7 @@ var lightUpdatesPerFrame = Math.pow(2 * renderDistance + 1, 2);
 var drawFog = true;
 var fogIntensity = 1.1;
 
-var skyBoxColor = skyBlue;
+var skyBoxColor = color_skyBlue;
 
 const colorID = [null,
     color_stone,
@@ -226,26 +226,26 @@ function loop() {
     if (sunAngle >= 0 && sunAngle < Math.PI / 8){
         let gradient = sunAngle / (Math.PI/8);
         newSunBrightness = 2.54648 * sunAngle * sunDefaultBrightness;
-        sunLight.Color = BABYLON.Color3.Interpolate(sunriseGold, sunny, gradient);
-        skyBoxColor = BABYLON.Color3.Interpolate(midnightBlue, skyBlue, gradient);
+        sunLight.Color = BABYLON.Color3.Interpolate(color_sunriseGold, color_sunny, gradient);
+        skyBoxColor = BABYLON.Color3.Interpolate(color_midnightBlue, color_skyBlue, gradient);
     }
     // Daylight
     else if (sunAngle >= Math.PI / 8 && sunAngle < Math.PI * 7/8){
         newSunBrightness = sunDefaultBrightness;
-        sunLight.Color = sunny;
-        skyBoxColor = skyBlue;
+        sunLight.Color = color_sunny;
+        skyBoxColor = color_skyBlue;
     }
     // Sunset
     else if (sunAngle >= Math.PI * 7/8 && sunAngle < Math.PI){
         let gradient = (sunAngle - (Math.PI * 7/8)) / (Math.PI/8);
         newSunBrightness = ((-2.54648 * sunAngle) + 8) * sunDefaultBrightness;
-        sunLight.Color = BABYLON.Color3.Interpolate(sunny, sunsetOrange, gradient);
-        skyBoxColor = BABYLON.Color3.Interpolate(skyBlue, midnightBlue, gradient);
+        sunLight.Color = BABYLON.Color3.Interpolate(color_sunny, color_sunsetOrange, gradient);
+        skyBoxColor = BABYLON.Color3.Interpolate(color_skyBlue, color_midnightBlue, gradient);
     }
     // Night
     else if (sunAngle >= Math.PI && sunAngle < Math.PI * 2){
         newSunBrightness = 0;
-        sunLight.Color = midnightBlue;
+        sunLight.Color = color_midnightBlue;
     }
     else{
         sunAngle = 0;
@@ -725,6 +725,10 @@ function GenerateWorld() {
                             let height = Math.round(Math.random() * 8 + 1);
                             PlaceTrunk(x, topLayer + 1, z, height, 8);
                         }
+                        if (RandomChance(0.003)) {
+                            let height = RandomInt(4, 10);
+                            PlaceTreeCone(x, topLayer + 1, z, height, 1.5 * height, height - 1, 0.7, 7, 0.03, 2);
+                        }
                         break;
                     // Swamp
                     case 6:
@@ -740,11 +744,11 @@ function GenerateWorld() {
                             let height = RandomInt(6, 12);
                             let width = RandomInt(1, 5);
                             let leafHeight = RandomInt(1, 3);
-                            PlaceTreeBox(x, topLayer + 1, z, height, width, leafHeight, 0.5, 7, 0.002, 18);
+                            PlaceTreeBox(x, topLayer + 1, z, height, width, leafHeight, 0.65, 7, 0.002, 18);
                         }
                         if (RandomChance(0.02)) {
                             let height = RandomInt(3, 7);
-                            PlaceTreeCone(x, topLayer + 1, z, height, height / 4, height / 4, 0.9, 7, 0.01, 18);
+                            PlaceTreeCone(x, topLayer + 1, z, height, height / 3.3, height / 4, 0.9, 7, 0.01, 18);
                         }
                         break;
                     // Badlands
