@@ -1470,16 +1470,16 @@ function Create3DCoordsKey(x, y, z){
 
 function UpdateColorMask(){   
     if(collisionData === 4){
-        maskColor = new BABYLON.Color3(-40, -30, 70);
+        maskColor = new BABYLON.Color3(150, 180, 300);
     }
     else if (collisionData === 9) {
-        maskColor = colorID[9];
+        maskColor = new BABYLON.Color3(500, 200, 200);
     }
     else if (collisionData === 13) {
-        maskColor = new BABYLON.Color3(-50, 30, 20);
+        maskColor = new BABYLON.Color3(150, 200, 200);
     }
     else{
-        maskColor = new BABYLON.Color3(0, 0, 0);
+        maskColor = color_white;
     }
 }
 

@@ -1,5 +1,5 @@
 var BiomeDryDesert = {
-    CourseScaleCompression: 0.004,
+    CourseScaleCompression: 0.005,
     CourseScaleHeight: 4,
     FineScaleCompression: 0.004,
     FineScaleHeight: 2,

@@ -63,7 +63,8 @@
         Device.prototype.clear = function () {
             // Clearing with black color by default
             this.workingContext.clearRect(0, 0, this.workingWidth, this.workingHeight);
-            let colorString = "rgb(" + (skyBoxColor.r + maskColor.r) + ", " + (skyBoxColor.g + maskColor.g) + ", " + (skyBoxColor.b + maskColor.b) + ")";
+            let skyBoxColorFiltered = skyBoxColor.filter(maskColor);
+            let colorString = "rgb(" + (skyBoxColorFiltered.r) + ", " + (skyBoxColorFiltered.g) + ", " + (skyBoxColorFiltered.b) + ")";
             this.workingContext.fillStyle = colorString;
             this.workingContext.fillRect(0, 0, this.workingWidth, this.workingHeight);
 
@@ -501,9 +502,8 @@
                             }
 
                             // Apply masking color
-                            outputColor.r += maskColor.r;
-                            outputColor.g += maskColor.g;
-                            outputColor.b += maskColor.b;
+                            outputColor = outputColor.filter(maskColor).map(255);
+
 
                             //FACE DRAWING, IF ENABLED
                             if (showFaces == true && faceColor != null) {

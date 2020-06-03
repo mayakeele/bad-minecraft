@@ -31,14 +31,18 @@ var BABYLON;
             return new Color3(this.r * scalar, this.g * scalar, this.b * scalar);
         };
 
+        Color3.prototype.map = function(maxlevel){
+            let highestChannel = Math.max(this.r, this.g, this.b);
+            let scalar = highestChannel > maxlevel  ?  maxlevel / highestChannel  :  1;
+
+            return this.scale(scalar);
+        };
+
         Color3.prototype.combine = function(other){
             // Adds two colors together, mapping to a 0-255 scale if r g or b is greater than 255
             let sum = this.add(other);
 
-            let maxChannel = Math.max(sum.r, sum.g, sum.b);
-            let scalar = maxChannel > 255  ?  255 / maxChannel  :  1;
-
-            return sum.scale(scalar);
+            return sum.map(255);
         };
 
         Color3.prototype.equals = function(other){
@@ -49,6 +53,12 @@ var BABYLON;
             else{
                 return false;
             }
+        };
+
+        Color3.prototype.filter = function(filterColor){
+            // Scales the input color by the percentage of each color channel in the filter
+            let filterPercent = filterColor.scale(1 / 255);
+            return this.multiply(filterPercent);
         };
 
         Color3.Interpolate = function Interpolate(colorA, colorB, gradient) {
