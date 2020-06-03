@@ -744,11 +744,11 @@ function GenerateWorld() {
                             let height = RandomInt(6, 12);
                             let width = RandomInt(1, 5);
                             let leafHeight = RandomInt(1, 3);
-                            PlaceTreeBox(x, topLayer + 1, z, height, width, leafHeight, 0.65, 7, 0.002, 18);
+                            PlaceTreeBox(x, topLayer + 1, z, height, width, leafHeight, 0.65, 7);
                         }
                         if (RandomChance(0.02)) {
                             let height = RandomInt(3, 7);
-                            PlaceTreeCone(x, topLayer + 1, z, height, height / 3.3, height / 4, 0.9, 7, 0.01, 18);
+                            PlaceTreeCone(x, topLayer + 1, z, height, height / 3.3, height / 4, 0.9, 7);
                         }
                         break;
                     // Badlands
@@ -873,6 +873,13 @@ function GenerateWorld() {
                         }
                         if (RandomChance(0.02)) {
                             PlaceGroundCover(x, topLayer + 1, z, 1);
+                        }
+                        break;
+                    
+                    // Swamp
+                    case 6:
+                        if (RandomChance(0.025)) {
+                            PlaceGroundCover(x, seaLevel, z, 18);
                         }
                         break;
 
