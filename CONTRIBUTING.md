@@ -1,0 +1,1 @@
+Feel free to submit any content or performance suggestions. If you would like to add something or create your own spinoff, I'd appreciate it if you contacted me. Otherwise, feel free to use this however you'd like. It is a passion project of mine and I don't expect to make any money off of it.
