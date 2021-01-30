@@ -55,7 +55,7 @@
             this.workingCanvas = canvas;
             this.workingWidth = canvas.width;
             this.workingHeight = canvas.height;
-            this.workingContext = this.workingCanvas.getContext("2d");
+            this.workingContext = this.workingCanvas.getContext("2d", { alpha : false});
             this.depthbuffer = new Array(this.workingWidth * this.workingHeight);
         }
 

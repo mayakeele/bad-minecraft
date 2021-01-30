@@ -188,9 +188,9 @@ var BABYLON;
             this.z *= num;
         };
         Vector3.prototype.clamp = function (minimum, maximum) {
-            let x = clampValue(this.x, minimum.x, maximum.x);
-            let y = clampValue(this.y, minimum.y, maximum.y);
-            let z = clampValue(this.z, minimum.z, maximum.z);
+            let x = ClampValue(this.x, minimum.x, maximum.x);
+            let y = ClampValue(this.y, minimum.y, maximum.y);
+            let z = ClampValue(this.z, minimum.z, maximum.z);
             return new BABYLON.Vector3(x, y, z);
         };
         Vector3.prototype.isWithinBounds = function (minimum, maximum) {

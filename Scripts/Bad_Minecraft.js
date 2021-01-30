@@ -1,7 +1,7 @@
 // Created by Grant Keele
 
 var worldWidth = 128;
-var worldHeight = 96;
+var worldHeight = 72;
 
 var worldSeed;
 
@@ -53,49 +53,75 @@ var fogIntensity = 1.1;
 var skyBoxColor = skyBlue;
 
 const colorID = [null,
-    stoneGray,
-    topsoilBrown,
-    brightGrassGreen,
-    waterBlue,
-    sandBeige,
-    woodBrown,
-    leafGreen,
-    cactusGreen,
-    lavaRed,
-    clayRed,
-    cobblestoneGrey,
-    snowWhite,
-    waterTurquoise,
-    cloudGrey,
-    campfireOrange,
-    soulfireBlue,
-    lightbulbYellow,
-    lightFruitGreen,
+    stoneColor, // 1
+    topsoilColor, // 2
+    brightGrassColor,  // 3
+    waterBlueColor, // 4
+    sandColor, // 5
+    woodColor, // 6
+    leafColor, // 7
+    cactusColor, // 8
+    lavaColor, // 9
+    clayColor, // 10
+    cobblestoneColor, // 11
+    snowColor, // 12
+    waterTurquoiseColor, // 13
+    cloudColor, // 14
+    campfireColor, // 15
+    soulfireColor, // 16
+    lightbulbYellowColor, // 17
+    lightFruitGreenColor, // 18
+    copperOreColor, // 19
+    ironOreColor, // 20
+    cobaltOreColor, // 21
+    goldOreColor, // 22
+    orichalcumOreColor, // 23
+    adamantiumOreColor // 24
 ];
 
 const blockTransparency = [null,
-    0,
-    0,
-    0.2,
-    0.8,
-    0.2,
-    0,
-    0.5,
-    0,
-    0,
-    0,
-    0,
-    0.2,
-    0.6,
-    0.7,
-    0.5,
-    0.5,
-    0.5,
-    0
+    0, // 1
+    0, // 2
+    0.2, // 3
+    0.8, // 4
+    0.2, // 5
+    0, // 6
+    0.5, // 7
+    0, // 8
+    0, // 9
+    0, // 10
+    0, // 11
+    0.2, // 12
+    0.6, // 13
+    0.7, // 14
+    0.5, // 15
+    0.5, // 16
+    0.5, // 17
+    0, // 18
+    0, // 19
+    0, // 20
+    0, // 21
+    0, // 22
+    0, // 23
+    0, // 24
 ];
 
 const liquidID = [4, 9, 13];
 const lightSourceID = [9, 15, 16, 17, 18];
+
+const oreBlocks = [19, 20, 21, 22, 23, 24];
+const oreRelativeSpawnChance = [16, 14, 12, 10, 8, 6];
+const oreDepthRanges = [
+    [0.1, 0.5],
+    [0.2, 0.5],
+    [0.3, 0.4],
+    [0.5, 0.35],
+    [0.8, 0.3],
+    [0.9, 0.2]
+]
+const oreDensitySurface = 0.008;
+const oreDensityDepthMultiplier = 3;
+
 
 var maskColor = new BABYLON.Color3(0, 0, 0);
 
@@ -611,10 +637,8 @@ function GenerateWorld() {
         }
     }
 
-
     // Recalculate heightmap in areas modified by caving
     let caveMap = GenerateCaves(0.4, 4, heightMap);
-
     for (let x = 1; x < worldWidth-1; x++) {
         for (let z = 1; z < worldWidth-1; z++) {
 
@@ -634,6 +658,11 @@ function GenerateWorld() {
             }
         }
     }
+
+
+    // Generate ore veins throughout the underground
+    GenerateOres(oreBlocks, oreRelativeSpawnChance, oreDepthRanges, oreDensitySurface, oreDensityDepthMultiplier, heightMap);
+
 
     // Places surface scatter based on biome and elevation
     for (let x = 1; x < worldWidth-1; x++) {
@@ -1180,6 +1209,7 @@ function CalculateVolumeLightSources(minCoords, maxCoords){
     }
 }
 
+
 function ClearVolumeLightSources(minCoords, maxCoords){
     // Removes source light data for all blocks in a given volume
     minCoords = minCoords.clamp(new BABYLON.Vector3(0, 0, 0), new BABYLON.Vector3(worldWidth-1, worldHeight-1, worldWidth-1));
@@ -1199,21 +1229,6 @@ function ClearVolumeLightSources(minCoords, maxCoords){
     }
 }
 
-
-function Unflatten3DGrid(index, width){
-    // Converts a single index into a 3D integer coordinate trio, given the dimensions of a square grid to pick from
-    // Coordinates are mapped in the order (x, z, y), but a standard xyz vector is returned
-    let maxIndex = width * width * width - 1;
-    if (index > maxIndex){
-        return; }
-
-    let x = index % width;
-    let z = Math.trunc(index / width) % width;
-    let y = Math.trunc(index / (width * width));
-
-    let coords = new BABYLON.Vector3(x, y, z);
-    return coords;
-}
 
 
 function CreateFaceMeshes(x, y, z) {
@@ -1476,109 +1491,7 @@ function CycleSelectedBlock(sign){
 	document.getElementById("blockInHandStat").innerHTML = "Block in Hand: " + blockInHand;
 }
 
-// Utility Functions
 
-function Create2DArray(x, y, fill = 0) {
-    var arr = new Array(x);
-
-    for (var a = 0; a < x; a++) {
-        arr[a] = [];
-
-        for (var b = 0; b < y; b++) {
-            arr[a][b] = fill;
-        }
-    }
-
-    return arr;
-}
-
-function Create3DArray(x, y, z, fill = 0) {
-    var arr = new Array(x);
-
-    for (var a = 0; a < x; a++) {
-        arr[a] = [];
-
-        for (var b = 0; b < y; b++) {
-            arr[a][b] = [];
-
-            for (var c = 0; c < z; c++) {
-                arr[a][b][c] = fill;
-            }
-        }
-    }
-
-    return arr;
-}
-
-function Create4DArray(x, y, z, slots, fill = 0) {
-    var arr = new Array(x);
-
-    for (var a = 0; a < x; a++) {
-        arr[a] = [];
-
-        for (var b = 0; b < y; b++) {
-            arr[a][b] = [];
-
-            for (var c = 0; c < z; c++) {
-                arr[a][b][c] = [];
-
-                for (var d = 0; d < slots; d++) {
-                    arr[a][b][c][d] = fill;
-                }
-            }
-        }
-    }
-
-    return arr;
-}
-
-
-function RandomChance(percent){
-    if(Math.random() < percent){
-      return true;
-    }
-    else{
-      return false;
-    }
-}
-
-function RandomSign() {
-    if (Math.random() > 0.5) {
-        return 1;
-    }
-    else {
-        return -1;
-    }
-}
-
-function RandomBool() {
-    if (Math.random() > 0.5) {
-        return true;
-    }
-    else {
-        return false;
-    }
-}
-
-function RandomInt(inclusiveMin, inclusiveMax) {
-    let difference = inclusiveMax - inclusiveMin;
-    return Math.trunc(Math.random() * (difference + 1)) + inclusiveMin;
-}
-
-function DegToRad(deg){
-    let rad = deg * Math.PI / 180;
-    return rad;
-}
-
-function RadToDeg(rad){
-    let deg = rad * 180 / Math.PI;
-    return deg;
-}
-
-function clampValue(value, minimum, maximum) {
-    let clampedVal = Math.min(maximum, Math.max(minimum, value));
-    return clampedVal;
-}
 
 function FaceNumberToNormal(faceNumber){
 

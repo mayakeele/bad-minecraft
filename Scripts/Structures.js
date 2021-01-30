@@ -261,6 +261,41 @@ function PlaceTrunk(baseX, baseY, baseZ, height, blockID) {
     }
 }
 
+
+function GenerateOres(oreBlocksID, defaultOreProbabilities, desiredDepthRanges, defaultSeedDensity, densityDepthMultiplier, _heightMap){
+    // Randomly place ore seeds below the surface. Seeds are evenly distrubuted, but the ore type is weighted
+
+    for (let x = 0; x < worldWidth; x++) {
+        for (let z = 0; z < worldWidth; z++) {
+            let terrainHeight = _heightMap[x][z];
+            for (let y = 0; y <= terrainHeight; y++) {
+                // Seed an ore block here if the block is stone and the random chance is true
+                let currentDepthPercent = 1 - (y / terrainHeight);
+                let seedFrequency = defaultSeedDensity * MapRange(currentDepthPercent, 0, 1, 1, densityDepthMultiplier);
+                
+                if (RandomChance(seedFrequency) && GetBlockData(x, y, z) == 1) {
+                    // Compensates ore spawn chances based on each ore's probablity spread at depth
+                    let currentOreProbabilities = new Array(defaultOreProbabilities.length);
+                    for(let o = 0; o < oreBlocksID.length; o++){
+                        let center = desiredDepthRanges[o][0];
+                        let radius = desiredDepthRanges[o][1];
+
+                        let probablityMult = 1 - (Math.abs(center - currentDepthPercent) / radius)
+                        probablityMult = ClampValue(probablityMult, 0, 1);
+
+                        currentOreProbabilities[o] = probablityMult * defaultOreProbabilities[o];
+                    }
+
+                    let oreType = oreBlocksID[WeightedRandomChoice(currentOreProbabilities)];
+                    
+                    SetBlockData(x, y, z, oreType);
+                }
+            }   
+        }       
+    }
+}
+
+
 function GenerateCaves(threshold, compression, heightMap) {
     var caveMap = Create2DArray(worldWidth, worldWidth);
 

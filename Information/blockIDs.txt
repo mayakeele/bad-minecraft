@@ -10,11 +10,21 @@ Block ID List:
 7: Leaves
 8: Cactus
 9: Lava
-10: Red Rock
+10: Clay
 11: Cobblestone
-12: Cloud
+12: Snow
 13: Turquoise Water
-14: Light Block
+14: Cloud
+15: Campfire
+16: Soulfire
+17: Lightbulb
+18: Light fruit
+19: Copper Ore
+20: Iron Ore
+21: Cobalt Ore
+22: Gold Ore
+23: Orichalcum Ore
+24: Adamantium Ore
 
 
 Biome ID List:
