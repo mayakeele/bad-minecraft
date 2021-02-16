@@ -1,7 +1,7 @@
 ﻿function applyGravity(g, deltaTime, terminalVel) {
     // Adds an acceleration to the player, capping vertical velocity at a given speed
     // Since downwards velocity is negative, max is used to determine the 'least negative' one
-    deltaTime = ClampValue(deltaTime, 0, 0.15)
+    //deltaTime = ClampValue(deltaTime, 0, 0.15)
     playerVel.y = Math.max(terminalVel, playerVel.y - (g * deltaTime));
 }
 

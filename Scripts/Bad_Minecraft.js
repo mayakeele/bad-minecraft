@@ -1,56 +1,72 @@
 // Created by Grant Keele
 
-var worldWidth = 128;
-var worldHeight = 72;
 
-var worldSeed;
 
-var camInitPos = new BABYLON.Vector3(worldWidth/2, worldHeight, worldWidth/2);
-var camInitRot = new BABYLON.Vector3(0, 0, 0);
-
-var sunAxis = new BABYLON.Vector3(1, 0, 1);
-var sunDefaultDirection = new BABYLON.Vector3(-0.5, 0, 0.8);
-var currSunDirection = sunDefaultDirection;
-sunAxis.normalize();
-sunDefaultDirection.normalize();
-
-const sunDefaultBrightness = 0.75;
-const dayLength = 180;
-const sunSpeed = Math.PI / dayLength;
-var sunAngle = 0;
-
-var sunLight = new SoftEngine.Light("Sun", LightType.Directional, sunny, sunDefaultBrightness);
-sunLight.Direction = sunDefaultDirection;
-lights.push(sunLight);
-
-//var torchLight = new SoftEngine.Light("torch", LightType.Point, sunriseGold, 2.5);
-//lights.push(torchLight);
+// Render Settings
 
 var renderDistance = 4;
-var chunksPerEdge = 2 * renderDistance + 1;
-const chunkWidth = 8;
-const chunkHeight = 8;
-const seaLevel = 24;
-var currChunk;
-var prevChunk;
-var chunkUpdateIndex = 0;
-var chunkUpdateCoords = BABYLON.Vector3.Zero();
-//var chunksLoaded = Create2DArray(worldWidth, worldWidth);
+var drawFog = true;
+var fogIntensity = 1.1;
+var skyBoxColor = skyBlue;
 
-var blockData = Create3DArray(worldWidth, worldHeight, worldWidth);
-var visibleFaces = {};
 
-var volumetricLightData = {};
-var sunlightFaceData = {};
+
+// Light Settings
+
 var maxLightLevel = 10;
 var lightStepLength = 1;
 var maxLightSteps = 40;
+const sunDefaultBrightness = 0.75;
+const dayLength = 180;
+
+const sunSpeed = Math.PI / dayLength;
+var sunAngle = 45 * Math.PI/180;
+var volumetricLightData = {};
+var sunlightFaceData = {};
 var lightUpdatesPerFrame = Math.pow(2 * renderDistance + 1, 2);
 
-var drawFog = true;
-var fogIntensity = 1.1;
 
-var skyBoxColor = skyBlue;
+
+// World Generation Settings
+
+var worldSeed;
+
+var worldWidth = 128;
+var worldHeight = 96;
+
+const chunkWidth = 8;
+const chunkHeight = 8;
+const seaLevel = 24;
+
+var numBiomeCells = 12;
+var biomeAllocationType = 0;
+var simplexBiomeCompression = 0.004;
+var worldAmplificationHorizontal = 1;
+var worldAmplificationVertical = 1;
+
+
+
+// Player Settings
+
+var playerHeight = 2.5;
+var playerRadius = 0.48;
+var playerSpeed = 8;
+var jumpSpeed = 5;
+
+var cameraSensitivity = 0.004;
+var cameraFOV = 125 * Math.PI / 180;
+
+var gravityAccel = 10;
+var terminalVelocity = -30;
+
+var interactionDist = 7;
+var breakDelay = 0.1;
+var placeDelay = 0.1;
+
+
+
+
+// World Properties
 
 const colorID = [null,
     stoneColor, // 1
@@ -109,32 +125,6 @@ const blockTransparency = [null,
 const liquidID = [4, 9, 13];
 const lightSourceID = [9, 15, 16, 17, 18];
 
-const oreBlocks = [19, 20, 21, 22, 23, 24];
-const oreRelativeSpawnChance = [16, 14, 12, 10, 8, 6];
-const oreDepthRanges = [
-    [0.1, 0.5],
-    [0.2, 0.5],
-    [0.3, 0.4],
-    [0.5, 0.35],
-    [0.8, 0.3],
-    [0.9, 0.2]
-]
-const oreDensitySurface = 0.008;
-const oreDensityDepthMultiplier = 3;
-
-
-var maskColor = new BABYLON.Color3(0, 0, 0);
-
-var currBlock = new BABYLON.Vector3(0, 0, 0);
-var collisionData = 0;
-
-var biomeAllocationType = 0;
-var simplexBiomeCompression = 0.004;
-
-var numBiomeCells = 12;
-var worldAmplificationHorizontal = 1;
-var worldAmplificationVertical = 1;
-
 var biomeID = [
     BiomeDryDesert,      // 0
     BiomePlains,      // 1
@@ -154,26 +144,60 @@ var biomeID = [
 var biomeList = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
 //var biomeList = [8, 8, 3];
 
-var blockInHand = 1;
-var interactionDist = 7;
+const oreBlocks = [19, 20, 21, 22, 23, 24];
+const oreRelativeSpawnChance = [16, 14, 12, 10, 8, 6];
+const oreDepthRanges = [
+    [0.1, 0.5],
+    [0.2, 0.5],
+    [0.3, 0.4],
+    [0.5, 0.35],
+    [0.8, 0.3],
+    [0.9, 0.2]
+]
+const oreDensitySurface = 0.008;
+const oreDensityDepthMultiplier = 3;
 
-var breakDelay = 0.1;
-var placeDelay = 0.1;
+
+
+
+// Initialize Variables
+
+var camInitPos = new BABYLON.Vector3(worldWidth/2, worldHeight, worldWidth/2);
+var camInitRot = new BABYLON.Vector3(0, 0, 0);
+
+var sunAxis = new BABYLON.Vector3(1, 0, 1);
+var sunDefaultDirection = new BABYLON.Vector3(-0.5, 0, 0.8);
+var currSunDirection = sunDefaultDirection;
+sunAxis.normalize();
+sunDefaultDirection.normalize();
+
+var sunLight = new SoftEngine.Light("Sun", LightType.Directional, sunny, sunDefaultBrightness);
+sunLight.Direction = sunDefaultDirection;
+lights.push(sunLight);
+
+
+var currChunk;
+var prevChunk;
+var chunkUpdateIndex = 0;
+var chunkUpdateCoords = BABYLON.Vector3.Zero();
+var chunksPerEdge = 2 * renderDistance + 1;
+
+var blockData = Create3DArray(worldWidth, worldHeight, worldWidth);
+var visibleFaces = {};
+
+
+var blockInHand = 1;
+
 var timeSinceBreak = 0;
 var timeSincePlace = 0;
 
-var playerHeight = 2.5;
-var playerRadius = 0.48;
-var playerSpeed = 8;
-var jumpSpeed = 5;
-
-var cameraSensitivity = 0.004;
-var cameraFOV = 125 * Math.PI / 180;
-
-var gravityAccel = 12;
-var terminalVelocity = -30;
-
 var playerVel = new BABYLON.Vector3(0, 0, 0);
+
+var maskColor = new BABYLON.Color3(0, 0, 0);
+
+var currBlock = new BABYLON.Vector3(0, 0, 0);
+var collisionData = 0;
+
 
 
 

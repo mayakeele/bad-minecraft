@@ -22,6 +22,7 @@ CONTROLS:
   S - backwards
   D - right
   Space - jump / hold to fly
+  R - reset position
 
   Left Mouse - break block
   Right Mouse - place block
@@ -31,19 +32,21 @@ CONTROLS:
 
 NOTES:
 
-  - Performance is going to be pretty bad unless you have a super beefy CPU and lots of memory, since GPU isn't used in the rendering engine (render settings can be adjusted to get better performance).
+  - Recommended browser:  Chrome   (Firefox has much worse performance, Edge should be fine though)
+
+  - Render settings can be adjusted to get either faster performance or further render distance (see below)
   
   - There is a bug where if your camera goes right next to a face, it will sometimes freeze the whole program for a long time or until it crashes.
 
   - Check out blockIDs.txt to see which block corresponds to each ID. 
 
+  - To change world generation 
 
 
-HOW TO CHANGE SETTINGS:
 
-  - While the game is running, press F12 to open the Chrome console. Here you can modify the following variables to change render settings and performance:
+HOW TO CHANGE RENDER SETTINGS:
 
-    * renderDistance (default = 5)
-    * drawFog (default = true)
+  - While the game is running, press F12 to open the browser console. Here you can call functions or set variables to change render settings and performance:
 
-  - The rest deal with the world generation, I'll eventually make a config file with everything in it so you can customize the world
+    * function:  SetRenderDistance(numChunks)
+    * variable:  drawFog = false    OR    drawFog = true

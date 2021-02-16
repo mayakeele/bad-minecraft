@@ -1,3 +1,5 @@
+// Part of the Babylon.JS library
+
 var BABYLON;
 (function (BABYLON) {
     var Color3 = (function () {
