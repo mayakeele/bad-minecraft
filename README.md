@@ -11,7 +11,7 @@ To play Bad Minecraft:
 
   - Open Bad_Minecraft_APP.html to play (Chrome is recommended)
   
-  - Click anywhere on the screen to take control of the camera and move your mouse to look around.  Press escape to unhide the cursor.
+  - Click anywhere on the canvas to take control of the camera and move your mouse to look around.  Press escape to unhide the cursor.
 
 
 
