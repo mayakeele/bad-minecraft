@@ -50,3 +50,7 @@ HOW TO CHANGE RENDER SETTINGS:
 
     * function:  SetRenderDistance(numChunks)
     * variable:  drawFog = false    OR    drawFog = true
+
+
+Some screenshots: https://drive.google.com/drive/folders/1vFWjCMqEB7j7j4iSSJtxBPgsa0ttQrft?usp=sharing
+
