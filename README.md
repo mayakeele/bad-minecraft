@@ -1,4 +1,9 @@
 # Bad Minecraft
+
+
+Some screenshots: https://drive.google.com/drive/folders/1vFWjCMqEB7j7j4iSSJtxBPgsa0ttQrft?usp=sharing
+
+
 A Minecraft-like exploration game that runs in a browser on a CPU-based JS custom rendering engine.
 Thanks to David Rousset, who provided a great tutorial and framework to build this rendering engine.
 https://www.davrous.com/2013/06/13/tutorial-series-learning-how-to-write-a-3d-soft-engine-from-scratch-in-c-typescript-or-javascript/
@@ -40,8 +45,6 @@ NOTES:
 
   - Check out blockIDs.txt to see which block corresponds to each ID. 
 
-  - To change world generation 
-
 
 
 HOW TO CHANGE RENDER SETTINGS:
@@ -49,8 +52,8 @@ HOW TO CHANGE RENDER SETTINGS:
   - While the game is running, press F12 to open the browser console. Here you can call functions or set variables to change render settings and performance:
 
     * function:  SetRenderDistance(numChunks)
-    * variable:  drawFog = false    OR    drawFog = true
+    * variable:  drawFog = false / true
 
 
-Some screenshots: https://drive.google.com/drive/folders/1vFWjCMqEB7j7j4iSSJtxBPgsa0ttQrft?usp=sharing
+
 
