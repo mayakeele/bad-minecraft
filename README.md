@@ -8,7 +8,6 @@ A Minecraft-like exploration game that runs in a browser on a CPU-based JS custo
 Thanks to David Rousset, who provided a great tutorial and framework to build this rendering engine.
 https://www.davrous.com/2013/06/13/tutorial-series-learning-how-to-write-a-3d-soft-engine-from-scratch-in-c-typescript-or-javascript/
 
-~ Developed by Grant Keele ~
 
 To play Bad Minecraft:
 
