@@ -1,21 +1,20 @@
 # Bad Minecraft
 
 
-Some screenshots: https://drive.google.com/drive/folders/1vFWjCMqEB7j7j4iSSJtxBPgsa0ttQrft?usp=sharing
-
-
 A Minecraft-like exploration game that runs in a browser on a CPU-based JS custom rendering engine.
-Thanks to David Rousset, who provided a great tutorial and framework to build this rendering engine.
+I made this in high school so performance is really poor.
+
+Thanks to David Rousset, whose tutorials helped build the framework for this rendering engine.
 https://www.davrous.com/2013/06/13/tutorial-series-learning-how-to-write-a-3d-soft-engine-from-scratch-in-c-typescript-or-javascript/
 
 
 To play Bad Minecraft:
 
-  - Download all files into a new folder of your choice.
+  - Download all files into a new folder.
 
   - Open Bad_Minecraft_APP.html to play (Chrome is recommended)
   
-  - Click anywhere on the canvas to take control of the camera and move your mouse to look around.  Press escape to unhide the cursor.
+  - Click anywhere on the canvas to take control of the camera and move your mouse to look around.  Press ESC to unhide the cursor.
 
 
 
@@ -36,11 +35,13 @@ CONTROLS:
 
 NOTES:
 
+  - Performance is garbage because it runs entirely on the CPU. Don't say I didn't warn you :)
+
   - Recommended browser:  Chrome   (Firefox has much worse performance, Edge should be fine though)
 
   - Render settings can be adjusted to get either faster performance or further render distance (see below)
   
-  - There is a bug where if your camera goes right next to a face, it will sometimes freeze the whole program for a long time or until it crashes.
+  - Don't get the camera too close to surfaces, it will sometimes freeze the whole program for a long time or until it crashes.
 
   - Check out blockIDs.txt to see which block corresponds to each ID. 
 
